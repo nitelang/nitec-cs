@@ -34,4 +34,9 @@ public sealed class SyntaxToken : SyntaxNode
     {
         return visitor.Visit(this, argument);
     }
+
+    public override SyntaxNode? GetSlot(int index) => null;
+    public override IEnumerable<SyntaxNode> GetChildNodes() => [];
+    public override IEnumerable<SyntaxNode> GetChildNodesAndTokens() => [];
+    public override IEnumerable<SyntaxToken> GetChildTokens() => [];
 }

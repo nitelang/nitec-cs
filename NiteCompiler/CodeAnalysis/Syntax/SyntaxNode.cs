@@ -41,4 +41,12 @@ public partial class SyntaxNode
     public abstract void Accept(SyntaxVisitor visitor);
     public abstract TResult Accept<TResult>(SyntaxVisitor<TResult> visitor);
     public abstract TResult Accept<TResult, TArgument>(SyntaxVisitor<TResult, TArgument> visitor, TArgument argument);
+
+    public abstract SyntaxNode? GetSlot(int index);
+    public abstract IEnumerable<SyntaxNode> GetChildNodes();
+    public abstract IEnumerable<SyntaxNode> GetChildNodesAndTokens();
+    public abstract IEnumerable<SyntaxToken> GetChildTokens();
+    // TODO[later]:
+    // public abstract SyntaxNode? GetChildWithinPosition(int position);
+    // public abstract bool Contains(SyntaxNode);
 }
