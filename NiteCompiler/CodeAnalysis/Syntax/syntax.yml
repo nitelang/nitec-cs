@@ -1,0 +1,101 @@
+tokens:
+  # None and EndOfFile is embedded in generator code
+  - name: Tilde
+    text: "~"
+  - name: Exclamation
+    text: "!"
+  - name: Ampersand
+    text: "&"
+  - name: Bar
+    text: "|"
+  - name: Percent
+    text: "%"
+  - name: Caret
+    text: "^"
+  - name: Underscore
+    text: "_"
+  - name: OpenParen
+    text: "("
+  - name: CloseParen
+    text: ")"
+  - name: OpenBrace
+    text: "{"
+  - name: CloseBrace
+    text: "}"
+  - name: OpenBracket
+    text: "["
+  - name: CloseBracket
+    text: "]"
+  - name: Dot
+    text: "."
+  - name: Comma
+    text: ","
+  - name: Colon
+    text: ":"
+  - name: DoubleColon
+    text: "::"
+  - name: Semicolon
+    text: ";"
+  - name: Asterisk
+    text: "*"
+  - name: Minus
+    text: "-"
+  - name: Plus
+    text: "+"
+  - name: Slash
+    text: "/"
+  - name: Backslash
+    text: "\\"
+  - name: Range
+    text: ".."
+  - name: InclusiveRange
+    text: "..="
+    
+  # keywords
+  - name: TrueKeyword
+    text: "true"
+  - name: FalseKeyword
+    text: "false"
+    
+nodes:
+  - name: SyntaxNode
+    abstract: true
+    members:
+      - name: SyntaxTree
+        type: SyntaxTree
+    
+  - name: Expression
+    base: SyntaxNode
+    abstract: true
+    
+  - name: UnaryExpression
+    base: Expression
+    members:
+      - name: OperatorToken
+        type: SyntaxToken
+      - name: Value
+        type: ExpressionSyntax
+    kinds:
+      - name: UnaryAdditionExpression
+        precedence: Additive
+      - name: UnarySubstractionExpression
+        precedence: Additive
+
+  - name: BinaryExpression
+    base: Expression
+    members:
+      - name: Left
+        type: ExpressionSyntax
+      - name: OperatorToken
+        type: SyntaxToken
+      - name: Right
+        type: ExpressionSyntax
+    kinds:
+      - name: AdditionExpression
+        precedence: Additive
+      - name: SubstractionExpression
+        precedence: Additive
+      - name: MultiplicationExpression
+        precedence: Multiplicative
+      - name: DivisionExpression
+        precedence: Multiplicative

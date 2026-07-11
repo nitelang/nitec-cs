@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Files/">
+    <File Path="../../../../Projects/NiteCompiler/.gitignore" />
+    <File Path="../../../../Projects/NiteCompiler/LICENSE" />
+    <File Path="../../../../Projects/NiteCompiler/README.md" />
+  </Folder>
+  <Project Path="NiteCompiler.SourceGenerators/NiteCompiler.SourceGenerators.csproj" />
+  <Project Path="NiteCompiler.Tests/NiteCompiler.Tests.csproj" />
+  <Project Path="NiteCompiler/NiteCompiler.csproj" />
+</Solution>
