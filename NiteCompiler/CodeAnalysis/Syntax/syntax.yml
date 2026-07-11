@@ -36,20 +36,52 @@ tokens:
     text: "::"
   - name: Semicolon
     text: ";"
-  - name: Asterisk
-    text: "*"
-  - name: Minus
-    text: "-"
   - name: Plus
     text: "+"
+  - name: Minus
+    text: "-"
+  - name: Asterisk
+    text: "*"
   - name: Slash
     text: "/"
   - name: Backslash
     text: "\\"
+  - name: Less
+    text: "<"
+  - name: Greater
+    text: ">"
   - name: Range
     text: ".."
   - name: InclusiveRange
     text: "..="
+    # these 3 produced at the parser, not in the lexer
+  - name: RightShift
+    text: ">>"
+  - name: UnsignedRightShift
+    text: ">>>"
+  - name: LeftShift
+    text: "<<"
+    
+  # compound operators
+  - name: PlusEquals
+    text: "+="
+  - name: MinusEquals
+    text: "-="
+  - name: AsteriskEquals
+    text: "*="
+  - name: SlashEquals
+    text: "/="
+  - name: PercentEquals
+    text: "%="
+    
+  - name: DoubleEquals
+    text: "=="
+  - name: ExclamationMarkEquals
+    text: "!="
+  - name: LessEquals
+    text: "<="
+  - name: GreaterEquals
+    text: ">="
     
   # keywords
   - name: TrueKeyword
@@ -57,12 +89,54 @@ tokens:
   - name: FalseKeyword
     text: "false"
     
+  # type keywords
+  - name: BoolKeyword
+    text: bool
+  - name: I8Keyword
+    text: i8
+  - name: I16Keyword
+    text: i16
+  - name: I32Keyword
+    text: i32
+  - name: I64Keyword
+    text: i64
+  - name: I128Keyword
+    text: i128
+  - name: U8Keyword
+    text: u8
+  - name: U16Keyword
+    text: u16
+  - name: U32Keyword
+    text: u32
+  - name: U64Keyword
+    text: u64
+  - name: U128Keyword
+    text: u128
+  - name: F16Keyword
+    text: f16
+  - name: F32Keyword
+    text: f32
+  - name: F64Keyword
+    text: f64
+    
+  # trivia
+  - name: EmptySpaceTrivia
+  - name: NewLineTrivia
+  - name: SingleLineComment
+  - name: MultiLineComment
+    
 nodes:
   - name: SyntaxNode
     abstract: true
     members:
       - name: SyntaxTree
         type: SyntaxTree
+        
+  - name: Root
+    base: SyntaxNode
+    members:
+      - name: Expressions
+        type: [Expression]
     
   - name: Expression
     base: SyntaxNode
@@ -93,9 +167,25 @@ nodes:
     kinds:
       - name: AdditionExpression
         precedence: Additive
+      - name: AdditionAssignmentExpression
+        precedence: Assignment
+        
       - name: SubstractionExpression
         precedence: Additive
+      - name: SubstractionAssignmentExpression
+        precedence: Assignment
+        
       - name: MultiplicationExpression
         precedence: Multiplicative
+      - name: MultiplicationAssignmentExpression
+        precedence: Assignment
+        
       - name: DivisionExpression
         precedence: Multiplicative
+      - name: DivisionAssignmentExpression
+        precedence: Assignment
+        
+      - name: ModuloExpression
+        precedence: Multiplicative
+      - name: ModuloAssignmentExpression
+        precedence: Assignment 

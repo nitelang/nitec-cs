@@ -41,10 +41,15 @@ internal sealed class GenerationContent
 
         foreach (var node in data.Nodes)
         {
-            NodeKind kind = new(node.Name)
+            Add(new NodeKind(node.Name)
             {
                 Abstract = node.Abstract
-            };
+            });
+        }
+
+        foreach (var node in data.Nodes)
+        {
+            var kind = _nodes[node.Name];
 
             if (node.Kinds.Length > 0)
             {
@@ -61,7 +66,19 @@ internal sealed class GenerationContent
 
             if (node.Members.Length > 0)
             {
-                kind.Members = node.Members.Select(m => new MemberKind(m.Name, m.Type)).ToArray();
+                kind.Members = node.Members.Select(m =>
+                {
+                    if (m.Type is List<object> typeList)
+                    {
+                        var rawType = typeList[0].ToString()!;
+                        var resolvedType = ResolveTypeName(rawType);
+                        return new MemberKind(m.Name, $"ImmutableArray<{resolvedType}>",
+                            isArray: true, elementType: resolvedType);
+                    }
+
+                    var resolved = ResolveTypeName(m.Type.ToString()!);
+                    return new MemberKind(m.Name, resolved);
+                }).ToArray();
             }
 
             if (node.Base != null)
@@ -75,8 +92,6 @@ internal sealed class GenerationContent
                 Add(autoKind);
                 kind.AutoKind = autoKind;
             }
-
-            Add(kind);
         }
     }
 
@@ -115,6 +130,14 @@ internal sealed class GenerationContent
             pair.Value.EvaluatedIndex = pair.Key;
         }
     }
+
+    private string ResolveTypeName(string rawName)
+    {
+        if (_nodes.TryGetValue(rawName, out var node))
+            return node.CodeName;
+
+        return rawName;
+    }
 }
 
 internal sealed record NodeKind
@@ -146,11 +169,15 @@ internal sealed record MemberKind
 {
     public string Name { get; }
     public string Type { get; }
+    public bool IsArray { get; }
+    public string ElementType { get; }
 
-    public MemberKind(string name, string type)
+    public MemberKind(string name, string type, bool isArray = false, string elementType = "")
     {
         Name = name;
         Type = type;
+        IsArray = isArray;
+        ElementType = elementType;
     }
 }
 

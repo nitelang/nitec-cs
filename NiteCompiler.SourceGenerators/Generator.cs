@@ -74,7 +74,9 @@ public class Generator : IIncrementalGenerator
         SourceWriter writer = new();
         writer.WriteDisclaimer();
         writer.WriteLine("#nullable enable");
-        
+        writer.WriteLine("using System.Collections.Immutable;");
+        writer.WriteLine("using System.Diagnostics;");
+
         writer.WriteLine("namespace NiteCompiler.CodeAnalysis.Syntax;");
         writer.WriteLine();
         
@@ -115,6 +117,8 @@ public class Generator : IIncrementalGenerator
         SourceWriter writer = new();
         writer.WriteDisclaimer();
         writer.WriteLine("#nullable enable");
+        writer.WriteLine("using System.Collections.Immutable;");
+        writer.WriteLine("using System.Diagnostics;");
 
         writer.WriteLine("namespace NiteCompiler.CodeAnalysis.Syntax;");
         writer.WriteLine();
@@ -162,16 +166,16 @@ public class Generator : IIncrementalGenerator
             {
                 foreach (var member in ownMembers)
                 {
-                    if (member.Type != "SyntaxKind" && !IsPrimitiveType(member.Type))
+                    if (!member.IsArray && member.Type != "SyntaxKind" && !IsPrimitiveType(member.Type))
                     {
-                        writer.WriteLine($"System.Diagnostics.Debug.Assert({ToCamelCase(member.Name)} != null);");
+                        writer.WriteLine($"Debug.Assert({ToCamelCase(member.Name)} != null);");
                     }
                 }
 
                 if (!kind.Abstract && kind.RelatedKinds.Length > 0)
                 {
                     var assertConditions = string.Join(" || ", kind.RelatedKinds.Select(k => $"kind == SyntaxKind.{k.Name}"));
-                    writer.WriteLine($"System.Diagnostics.Debug.Assert({assertConditions});");
+                    writer.WriteLine($"Debug.Assert({assertConditions});");
                 }
 
                 foreach (var member in ownMembers)
@@ -199,16 +203,18 @@ public class Generator : IIncrementalGenerator
             // Slot/child/span methods for sealed nodes
             if (!kind.Abstract)
             {
-                var childMembers = allMembers.Where(m => nodeTypeNames.Contains(m.Type)).ToArray();
+                var allChildren = allMembers.Where(m =>
+                    m.IsArray ? nodeTypeNames.Contains(m.ElementType) : nodeTypeNames.Contains(m.Type)).ToArray();
+                var slotChildren = allChildren.Where(m => !m.IsArray).ToArray();
 
                 writer.WriteLine();
                 writer.WriteLine("public override SyntaxNode? GetSlot(int index)");
                 writer.EnterScope("{");
                 writer.WriteLine("return index switch");
                 writer.EnterScope("{");
-                for (int i = 0; i < childMembers.Length; i++)
+                for (int i = 0; i < slotChildren.Length; i++)
                 {
-                    writer.WriteLine($"{i} => {childMembers[i].Name},");
+                    writer.WriteLine($"{i} => {slotChildren[i].Name},");
                 }
                 writer.WriteLine("_ => null");
                 writer.ExitScope("};");
@@ -216,43 +222,110 @@ public class Generator : IIncrementalGenerator
 
                 writer.WriteLine("public override IEnumerable<SyntaxNode> GetChildNodesAndTokens()");
                 writer.EnterScope("{");
-                foreach (var member in childMembers)
+                foreach (var member in allChildren)
                 {
-                    writer.WriteLine($"yield return {member.Name};");
+                    if (member.IsArray)
+                    {
+                        writer.WriteLine($"foreach (var child in {member.Name})");
+                        writer.EnterScope("{");
+                        writer.WriteLine("yield return child;");
+                        writer.ExitScope("}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"yield return {member.Name};");
+                    }
                 }
+                writer.WriteLine("yield break;");
                 writer.ExitScope("}");
 
-                var nonTokenChildren = childMembers.Where(m => m.Type != "SyntaxToken").ToArray();
                 writer.WriteLine("public override IEnumerable<SyntaxNode> GetChildNodes()");
                 writer.EnterScope("{");
-                foreach (var member in nonTokenChildren)
+                foreach (var member in allChildren)
                 {
-                    writer.WriteLine($"yield return {member.Name};");
+                    if (member.IsArray)
+                    {
+                        if (member.ElementType != "SyntaxToken")
+                        {
+                            writer.WriteLine($"foreach (var child in {member.Name})");
+                            writer.EnterScope("{");
+                            writer.WriteLine("yield return child;");
+                            writer.ExitScope("}");
+                        }
+                    }
+                    else if (member.Type != "SyntaxToken")
+                    {
+                        writer.WriteLine($"yield return {member.Name};");
+                    }
                 }
+                writer.WriteLine("yield break;");
                 writer.ExitScope("}");
 
-                var tokenChildren = childMembers.Where(m => m.Type == "SyntaxToken").ToArray();
                 writer.WriteLine("public override IEnumerable<SyntaxToken> GetChildTokens()");
                 writer.EnterScope("{");
-                foreach (var member in tokenChildren)
+                foreach (var member in allChildren)
                 {
-                    writer.WriteLine($"yield return {member.Name};");
+                    if (member.IsArray)
+                    {
+                        if (member.ElementType == "SyntaxToken")
+                        {
+                            writer.WriteLine($"foreach (var child in {member.Name})");
+                            writer.EnterScope("{");
+                            writer.WriteLine("yield return child;");
+                            writer.ExitScope("}");
+                        }
+                    }
+                    else if (member.Type == "SyntaxToken")
+                    {
+                        writer.WriteLine($"yield return {member.Name};");
+                    }
                 }
+                writer.WriteLine("yield break;");
                 writer.ExitScope("}");
 
-                if (childMembers.Length > 0)
-                {
-                    var last = childMembers[childMembers.Length - 1];
-                    writer.WriteLine("public override TextSpan Span => TextSpan.FromBounds(" +
-                        $"{childMembers[0].Name}.Span.Start, {last.Name}.Span.End);");
-                    writer.WriteLine("public override TextSpan FullSpan => TextSpan.FromBounds(" +
-                        $"{childMembers[0].Name}.FullSpan.Start, {last.Name}.FullSpan.End);");
-                }
-                else
-                {
-                    writer.WriteLine("public override TextSpan Span => default;");
-                    writer.WriteLine("public override TextSpan FullSpan => default;");
-                }
+                writer.WriteLine("public override TextSpan Span");
+                writer.EnterScope("{");
+                writer.WriteLine("get");
+                writer.EnterScope("{");
+                writer.WriteLine("TextSpan span = default;");
+                writer.WriteLine("bool any = false;");
+                writer.WriteLine("foreach (var child in GetChildNodesAndTokens())");
+                writer.EnterScope("{");
+                writer.WriteLine("if (!any)");
+                writer.EnterScope("{");
+                writer.WriteLine("span = child.Span;");
+                writer.WriteLine("any = true;");
+                writer.ExitScope("}");
+                writer.WriteLine("else");
+                writer.EnterScope("{");
+                writer.WriteLine("span = TextSpan.FromBounds(span.Start, child.Span.End);");
+                writer.ExitScope("}");
+                writer.ExitScope("}");
+                writer.WriteLine("return span;");
+                writer.ExitScope("}");
+                writer.ExitScope("}");
+
+                writer.WriteLine("public override TextSpan FullSpan");
+                writer.EnterScope("{");
+                writer.WriteLine("get");
+                writer.EnterScope("{");
+                writer.WriteLine("TextSpan span = default;");
+                writer.WriteLine("bool any = false;");
+                writer.WriteLine("foreach (var child in GetChildNodesAndTokens())");
+                writer.EnterScope("{");
+                writer.WriteLine("if (!any)");
+                writer.EnterScope("{");
+                writer.WriteLine("span = child.FullSpan;");
+                writer.WriteLine("any = true;");
+                writer.ExitScope("}");
+                writer.WriteLine("else");
+                writer.EnterScope("{");
+                writer.WriteLine("span = TextSpan.FromBounds(span.Start, child.FullSpan.End);");
+                writer.ExitScope("}");
+                writer.ExitScope("}");
+                writer.WriteLine("return span;");
+                writer.ExitScope("}");
+                writer.ExitScope("}");
             }
         }
         writer.ExitScope("}");
@@ -296,6 +369,8 @@ public class Generator : IIncrementalGenerator
         SourceWriter writer = new();
         writer.WriteDisclaimer();
         writer.WriteLine("#nullable enable");
+        writer.WriteLine("using System.Collections.Immutable;");
+        writer.WriteLine("using System.Diagnostics;");
 
         writer.WriteLine("namespace NiteCompiler.CodeAnalysis.Syntax;");
         writer.WriteLine();
