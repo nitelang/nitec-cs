@@ -1,6 +1,6 @@
-﻿namespace NiteCompiler.CodeAnalysis.Syntax;
+namespace NiteCompiler.CodeAnalysis.Syntax;
 
 public sealed record ParserOptions
 {
-    
+
 }

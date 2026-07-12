@@ -1,11 +1,11 @@
-﻿using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.CodeAnalysis.Syntax;
 
 namespace NiteCompiler;
 
 public sealed record CompilationOptions
 {
-    public ParserOptions AcquireParseOptions()
-    {
-        return new();
-    }
+	public ParserOptions AcquireParseOptions()
+	{
+		return new();
+	}
 }

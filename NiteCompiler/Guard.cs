@@ -1,6 +1,6 @@
-﻿namespace NiteCompiler;
+namespace NiteCompiler;
 
 internal static class Guard
 {
-    
+
 }

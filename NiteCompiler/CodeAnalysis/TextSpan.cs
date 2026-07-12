@@ -1,4 +1,4 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 
 namespace NiteCompiler.CodeAnalysis;
 
@@ -8,17 +8,17 @@ namespace NiteCompiler.CodeAnalysis;
 [DataContract]
 public readonly record struct TextSpan : IComparable<TextSpan>, IComparable
 {
-    [DataMember(Order = 0)] public readonly int Start;
-    [DataMember(Order = 1)] public readonly int Length;
-    public int End => Start + Length;
-    public bool IsEmpty => this.Length == 0;
-    
-    public TextSpan(int start, int length)
-	{
-        ArgumentOutOfRangeException.ThrowIfNegative(start);
-        ArgumentOutOfRangeException.ThrowIfNegative(length);
+	[DataMember(Order = 0)] public readonly int Start;
+	[DataMember(Order = 1)] public readonly int Length;
+	public int End => Start + Length;
+	public bool IsEmpty => this.Length == 0;
 
-        Start = start;
+	public TextSpan(int start, int length)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegative(start);
+		ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+		Start = start;
 		Length = length;
 	}
 
@@ -49,10 +49,10 @@ public readonly record struct TextSpan : IComparable<TextSpan>, IComparable
 
 	public static TextSpan FromBounds(int start, int end)
 	{
-        ArgumentOutOfRangeException.ThrowIfNegative(start);
-        ArgumentOutOfRangeException.ThrowIfLessThan(end, start);
+		ArgumentOutOfRangeException.ThrowIfNegative(start);
+		ArgumentOutOfRangeException.ThrowIfLessThan(end, start);
 
-        return new(start, end - start);
+		return new(start, end - start);
 	}
 
 	public static TextSpan FromBounds(TextSpan startFrom, TextSpan endFrom)
@@ -75,7 +75,7 @@ public readonly record struct TextSpan : IComparable<TextSpan>, IComparable
 
 	public int CompareTo(TextSpan other)
 	{
-		var startComparison = Start.CompareTo(other.Start);
+		int startComparison = Start.CompareTo(other.Start);
 		if (startComparison != 0) return startComparison;
 		return Length.CompareTo(other.Length);
 	}

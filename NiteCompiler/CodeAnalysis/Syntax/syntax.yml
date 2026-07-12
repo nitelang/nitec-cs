@@ -73,6 +73,18 @@ tokens:
     text: "/="
   - name: PercentEquals
     text: "%="
+  - name: CaretEquals
+    text: "^="
+  - name: AmpersandEquals
+    text: "&="
+  - name: BarEquals
+    text: "|="
+  - name: RightShiftEquals
+    text: ">>="
+  - name: UnsignedRightShiftEquals
+    text: ">>>="
+  - name: LeftShiftEquals
+    text: "<<="
     
   - name: DoubleEquals
     text: "=="
@@ -88,6 +100,10 @@ tokens:
     text: "true"
   - name: FalseKeyword
     text: "false"
+  - name: NullKeyword
+    text: "null"
+  - name: DefaultKeyword
+    text: "default"
     
   # type keywords
   - name: BoolKeyword
@@ -102,6 +118,8 @@ tokens:
     text: i64
   - name: I128Keyword
     text: i128
+  - name: ISizeKeyword
+    text: isize
   - name: U8Keyword
     text: u8
   - name: U16Keyword
@@ -112,6 +130,8 @@ tokens:
     text: u64
   - name: U128Keyword
     text: u128
+  - name: USizeKeyword
+    text: usize
   - name: F16Keyword
     text: f16
   - name: F32Keyword
@@ -124,6 +144,7 @@ tokens:
   - name: NewLineTrivia
   - name: SingleLineComment
   - name: MultiLineComment
+  - name: ShebangTrivia
     
 nodes:
   - name: SyntaxNode
@@ -151,9 +172,20 @@ nodes:
         type: ExpressionSyntax
     kinds:
       - name: UnaryAdditionExpression
-        precedence: Additive
+        precedence: Unary
       - name: UnarySubstractionExpression
-        precedence: Additive
+        precedence: Unary
+      - name: NegationExpression
+        precedence: Unary
+      - name: OnesComplementExpression
+        precedence: Unary
+        # TODO: these two should be separate nodes
+        # especially the AddressOfExpression, cause it's a complex expression
+        # fact that they are currently here is a technical debt
+      - name: AddressOfExpression
+        precedence: Unary
+      - name: DereferenceExpression
+        precedence: Unary
 
   - name: BinaryExpression
     base: Expression
@@ -188,4 +220,30 @@ nodes:
       - name: ModuloExpression
         precedence: Multiplicative
       - name: ModuloAssignmentExpression
-        precedence: Assignment 
+        precedence: Assignment
+        
+  - name: LogicalAndExpression
+    base: Expression
+    members:
+      - name: Left
+        type: ExpressionSyntax
+      - name: OperatorToken
+        type: SyntaxToken
+      - name: Right
+        type: ExpressionSyntax
+    kinds:
+      - name: LogicalAndExpression
+        precedence: ConditionalAnd
+  
+  - name: LogicalOrExpression
+    base: Expression
+    members:
+      - name: Left
+        type: ExpressionSyntax
+      - name: OperatorToken
+        type: SyntaxToken
+      - name: Right
+        type: ExpressionSyntax
+    kinds:
+      - name: LogicalOrExpression
+        precedence: ConditionalOr
