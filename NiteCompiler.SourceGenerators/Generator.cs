@@ -130,6 +130,7 @@ public class Generator : IIncrementalGenerator
 		writer.WriteLine("#nullable enable");
 		writer.WriteLine("using System.Collections.Immutable;");
 		writer.WriteLine("using System.Diagnostics;");
+		writer.WriteLine("using NiteCompiler.Text;");
 
 		writer.WriteLine("namespace NiteCompiler.CodeAnalysis.Syntax;");
 		writer.WriteLine();
@@ -146,9 +147,13 @@ public class Generator : IIncrementalGenerator
 				writer.WriteLine($"public {member.Type} {member.Name} {{ get; }}");
 			}
 
-			if (!kind.Abstract && kind.RelatedKinds.Length > 0)
+			if (!kind.Abstract && kind.RelatedKinds.Length > 1)
 			{
 				writer.WriteLine("public override SyntaxKind Kind { get; }");
+			}
+			else if (!kind.Abstract && kind.RelatedKinds.Length == 1)
+			{
+				writer.WriteLine($"public override SyntaxKind Kind => SyntaxKind.{kind.RelatedKinds[0].Name};");
 			}
 			else if (!kind.Abstract && kind.AutoKind != null)
 			{
@@ -156,7 +161,7 @@ public class Generator : IIncrementalGenerator
 			}
 
 			var parameters = new List<string>();
-			if (!kind.Abstract && kind.RelatedKinds.Length > 0)
+			if (!kind.Abstract && kind.RelatedKinds.Length > 1)
 			{
 				parameters.Add("SyntaxKind kind");
 			}
@@ -183,7 +188,7 @@ public class Generator : IIncrementalGenerator
 					}
 				}
 
-				if (!kind.Abstract && kind.RelatedKinds.Length > 0)
+				if (!kind.Abstract && kind.RelatedKinds.Length > 1)
 				{
 					string assertConditions = string.Join(" || ", kind.RelatedKinds.Select(k => $"kind == SyntaxKind.{k.Name}"));
 					writer.WriteLine($"Debug.Assert({assertConditions});");
@@ -194,7 +199,7 @@ public class Generator : IIncrementalGenerator
 					writer.WriteLine($"{member.Name} = {ToCamelCase(member.Name)};");
 				}
 
-				if (!kind.Abstract && kind.RelatedKinds.Length > 0)
+				if (!kind.Abstract && kind.RelatedKinds.Length > 1)
 				{
 					writer.WriteLine("Kind = kind;");
 				}

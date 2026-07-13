@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace NiteCompiler.CodeAnalysis;
+namespace NiteCompiler.Text;
 
 /// <summary>
 /// Span of text.

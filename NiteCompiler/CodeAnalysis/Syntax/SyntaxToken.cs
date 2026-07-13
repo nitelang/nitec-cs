@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using NiteCompiler.Text;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
 
