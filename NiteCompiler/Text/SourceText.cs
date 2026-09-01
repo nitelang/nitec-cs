@@ -19,6 +19,21 @@ public class SourceText
 		return new(text);
 	}
 
+	public LineCollection LineCollection
+	{
+		get
+		{
+			if (field == null)
+			{
+				var newCollection = new LineCollection();
+
+				Interlocked.CompareExchange(ref field, newCollection, null);
+			}
+
+			return field;
+		}
+	}
+
 	public void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
 	{
 		_text.CopyTo(sourceIndex, destination, destinationIndex, count);

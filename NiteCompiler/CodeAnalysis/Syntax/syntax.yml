@@ -4,6 +4,8 @@ tokens:
     text: "~"
   - name: Exclamation
     text: "!"
+  - name: Question
+    text: "?"
   - name: Ampersand
     text: "&"
   - name: Bar
@@ -61,7 +63,7 @@ tokens:
     text: ">>>"
   - name: LeftShift
     text: "<<"
-    
+
   # compound operators
   - name: PlusEquals
     text: "+="
@@ -85,16 +87,16 @@ tokens:
     text: ">>>="
   - name: LeftShiftEquals
     text: "<<="
-    
+
   - name: DoubleEquals
     text: "=="
-  - name: ExclamationMarkEquals
+  - name: NotEquals
     text: "!="
   - name: LessEquals
     text: "<="
   - name: GreaterEquals
     text: ">="
-    
+
   # keywords
   - name: TrueKeyword
     text: "true"
@@ -104,7 +106,7 @@ tokens:
     text: "null"
   - name: DefaultKeyword
     text: "default"
-    
+
   # type keywords
   - name: BoolKeyword
     text: bool
@@ -138,31 +140,31 @@ tokens:
     text: f32
   - name: F64Keyword
     text: f64
-    
+
   # trivia
   - name: EmptySpaceTrivia
   - name: NewLineTrivia
   - name: SingleLineComment
   - name: MultiLineComment
   - name: ShebangTrivia
-    
+
 nodes:
   - name: SyntaxNode
     abstract: true
     members:
       - name: SyntaxTree
         type: SyntaxTree
-        
+
   - name: Root
     base: SyntaxNode
     members:
       - name: Expressions
         type: [Expression]
-    
+
   - name: Expression
     base: SyntaxNode
     abstract: true
-    
+
   - name: UnaryExpression
     base: Expression
     members:
@@ -201,27 +203,27 @@ nodes:
         precedence: Additive
       - name: AdditionAssignmentExpression
         precedence: Assignment
-        
+
       - name: SubstractionExpression
         precedence: Additive
       - name: SubstractionAssignmentExpression
         precedence: Assignment
-        
+
       - name: MultiplicationExpression
         precedence: Multiplicative
       - name: MultiplicationAssignmentExpression
         precedence: Assignment
-        
+
       - name: DivisionExpression
         precedence: Multiplicative
       - name: DivisionAssignmentExpression
         precedence: Assignment
-        
+
       - name: ModuloExpression
         precedence: Multiplicative
       - name: ModuloAssignmentExpression
         precedence: Assignment
-        
+
   - name: LogicalAndExpression
     base: Expression
     members:
@@ -234,7 +236,7 @@ nodes:
     kinds:
       - name: LogicalAndExpression
         precedence: ConditionalAnd
-  
+
   - name: LogicalOrExpression
     base: Expression
     members:

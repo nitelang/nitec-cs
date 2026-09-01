@@ -193,12 +193,8 @@ public struct SlidingWindow
 				_window = newWindow;
 			}
 
-			int amountToRead = int.Min(_textEnd - (_basis + _windowLength),
-					_window.Length - _windowLength);
-			_sourceText.CopyTo(_basis + _windowLength,
-				_window,
-				_windowLength,
-				amountToRead);
+			int amountToRead = int.Min(_textEnd - (_basis + _windowLength), _window.Length - _windowLength);
+			_sourceText.CopyTo(_basis + _windowLength, _window, _windowLength, amountToRead);
 			_windowLength += amountToRead;
 			return amountToRead > 0;
 		}
