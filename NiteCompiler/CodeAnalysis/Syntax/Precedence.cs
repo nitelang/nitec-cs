@@ -12,7 +12,7 @@ public enum Precedence : byte
 	BitwiseAnd, // &
 	Equality, // == !=
 	Relational, // > >= < <=
-	Shift,
+	Shift, // >> >>> <<
 	Additive, // + -
 	Multiplicative, // * / %
 	Range, // .. ..=

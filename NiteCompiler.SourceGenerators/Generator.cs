@@ -103,6 +103,14 @@ public class Generator : IIncrementalGenerator
 			{
 				writer.WriteLine("public bool IsToken => (uint)kind < 512;");
 				writer.WriteLine("public bool IsNode => (uint)kind >= 512 && kind != SyntaxKind.EndOfFile;");
+				writer.WriteLine("public bool IsTrivia => kind switch");
+				writer.EnterScope("{");
+				foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.IsTrivia))
+				{
+					writer.WriteLine($"SyntaxKind.{kind.Name} => true,");
+				}
+				writer.WriteLine("_ => false");
+				writer.ExitScope("};");
 				writer.WriteLine();
 				writer.WriteLine("public string? Text => kind switch");
 				writer.EnterScope("{");

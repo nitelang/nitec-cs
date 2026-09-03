@@ -106,6 +106,8 @@ tokens:
     text: "null"
   - name: DefaultKeyword
     text: "default"
+  - name: FileKeyword
+    text: "file"
 
   # type keywords
   - name: BoolKeyword
@@ -143,10 +145,15 @@ tokens:
 
   # trivia
   - name: EmptySpaceTrivia
+    trivia: true
   - name: NewLineTrivia
+    trivia: true
   - name: SingleLineComment
+    trivia: true
   - name: MultiLineComment
+    trivia: true
   - name: ShebangTrivia
+    trivia: true
 
 nodes:
   - name: SyntaxNode
@@ -173,20 +180,20 @@ nodes:
       - name: Value
         type: ExpressionSyntax
     kinds:
-      - name: UnaryAdditionExpression
+      - name: UnaryAdditionExpression # +x
         precedence: Unary
-      - name: UnarySubstractionExpression
+      - name: UnarySubstractionExpression # -x
         precedence: Unary
-      - name: NegationExpression
+      - name: NegationExpression # !x
         precedence: Unary
-      - name: OnesComplementExpression
+      - name: OnesComplementExpression # ~x
         precedence: Unary
         # TODO: these two should be separate nodes
         # especially the AddressOfExpression, cause it's a complex expression
         # fact that they are currently here is a technical debt
-      - name: AddressOfExpression
+      - name: AddressOfExpression # &x
         precedence: Unary
-      - name: DereferenceExpression
+      - name: DereferenceExpression # *x
         precedence: Unary
 
   - name: BinaryExpression
@@ -199,30 +206,75 @@ nodes:
       - name: Right
         type: ExpressionSyntax
     kinds:
-      - name: AdditionExpression
+      - name: AdditionExpression # x + y
         precedence: Additive
-      - name: AdditionAssignmentExpression
+      - name: AdditionAssignmentExpression # x += y
         precedence: Assignment
 
-      - name: SubstractionExpression
+      - name: SubstractionExpression # x - y
         precedence: Additive
-      - name: SubstractionAssignmentExpression
+      - name: SubstractionAssignmentExpression # x -= y
         precedence: Assignment
 
-      - name: MultiplicationExpression
+      - name: MultiplicationExpression # x * y
         precedence: Multiplicative
-      - name: MultiplicationAssignmentExpression
+      - name: MultiplicationAssignmentExpression # x *= y
         precedence: Assignment
 
-      - name: DivisionExpression
+      - name: DivisionExpression # x / y
         precedence: Multiplicative
-      - name: DivisionAssignmentExpression
+      - name: DivisionAssignmentExpression # x /= y
         precedence: Assignment
 
-      - name: ModuloExpression
+      - name: ModuloExpression # x % y
         precedence: Multiplicative
-      - name: ModuloAssignmentExpression
+      - name: ModuloAssignmentExpression # x %= y
         precedence: Assignment
+
+      - name: AndExpression # x & y
+        precedence: BitwiseAnd
+      - name: AndAssignmentExpression # x &= y
+        precedence: Assignment
+
+      - name: XorExpression # x ^ y
+        precedence: BitwiseXor
+      - name: XorAssignmentExpression # x ^= y
+        precedence: Assignment
+
+      - name: OrExpression # x | y
+        precedence: BitwiseOr
+      - name: OrAssignmentExpression # x |= y
+        precedence: Assignment
+
+      - name: RightShiftExpression # x >> y
+        precedence: Shift
+      - name: RightShiftAssignmentExpression # x >>= y
+        precedence: Assignment
+
+      - name: UnsignedRightShiftExpression # x >>> y
+        precedence: Shift
+      - name: UnsignedRightShiftAssignmentExpression # x >>>= y
+        precedence: Assignment
+
+      - name: LeftShiftExpression # x << y
+        precedence: Shift
+      - name: LeftShiftAssignmentExpression # x <<= y
+        precedence: Assignment
+
+      - name: EqualsExpression # x == y
+        precedence: Equality
+      - name: NotEqualsExpression # x != y
+        precedence: Equality
+
+      - name: LessExpression # x < y
+        precedence: Relational
+      - name: LessOrEqualsExpression # x <= y
+        precedence: Relational
+
+      - name: GreaterExpression # x > y
+        precedence: Relational
+      - name: GreaterOrEqualsExpression # x >= y
+        precedence: Relational
 
   - name: LogicalAndExpression
     base: Expression
@@ -234,7 +286,7 @@ nodes:
       - name: Right
         type: ExpressionSyntax
     kinds:
-      - name: LogicalAndExpression
+      - name: LogicalAndExpression # x && y
         precedence: ConditionalAnd
 
   - name: LogicalOrExpression
@@ -247,5 +299,5 @@ nodes:
       - name: Right
         type: ExpressionSyntax
     kinds:
-      - name: LogicalOrExpression
+      - name: LogicalOrExpression # x || y
         precedence: ConditionalOr
