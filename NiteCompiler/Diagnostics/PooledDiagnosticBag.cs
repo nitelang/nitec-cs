@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using NiteCompiler.CodeAnalysis.Pooling;
+using NiteCompiler.Utilities;
 
 namespace NiteCompiler.Diagnostics;
 

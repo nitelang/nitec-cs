@@ -1,3 +1,5 @@
+using NiteCompiler.Utilities;
+
 namespace NiteCompiler.Diagnostics;
 
 public sealed class DiagnosticDescriptor

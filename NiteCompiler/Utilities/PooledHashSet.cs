@@ -7,7 +7,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace NiteCompiler.CodeAnalysis.Pooling;
+namespace NiteCompiler.Utilities;
 
 // HashSet that can be recycled via an object pool
 // NOTE: these HashSets always have the default comparer.

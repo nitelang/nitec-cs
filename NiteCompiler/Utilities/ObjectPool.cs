@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace NiteCompiler.CodeAnalysis.Pooling;
+namespace NiteCompiler.Utilities;
 
 /// <summary>
 /// Generic implementation of the object pooling pattern with a predefined pool size limit.
@@ -115,7 +115,7 @@ internal class ObjectPool<T> where T : class
 	/// </summary>
 	/// <remarks>
 	/// Search strategy is a simple linear probing which is chosen for it cache-friendliness.
-	/// Note that Free will try to store recycled objects close to the start thus statistically 
+	/// Note that Free will try to store recycled objects close to the start thus statistically
 	/// reducing how far we will typically search.
 	/// </remarks>
 	internal T Allocate(
@@ -126,7 +126,7 @@ internal class ObjectPool<T> where T : class
 	)
 	{
 		// PERF: Examine the first element. If that fails, AllocateSlow will look at the remaining elements.
-		// Note that the initial read is optimistically not synchronized. That is intentional. 
+		// Note that the initial read is optimistically not synchronized. That is intentional.
 		// We will interlock only when we have a candidate. in a worst case we may miss some
 		// recently returned objects. Not a big deal.
 		var inst = _firstItem;
@@ -148,7 +148,7 @@ internal class ObjectPool<T> where T : class
 
 		for (int i = 0; i < items.Length; i++)
 		{
-			// Note that the initial read is optimistically not synchronized. That is intentional. 
+			// Note that the initial read is optimistically not synchronized. That is intentional.
 			// We will interlock only when we have a candidate. in a worst case we may miss some
 			// recently returned objects. Not a big deal.
 			var inst = items[i].Value;
@@ -169,7 +169,7 @@ internal class ObjectPool<T> where T : class
 	/// </summary>
 	/// <remarks>
 	/// Search strategy is a simple linear probing which is chosen for it cache-friendliness.
-	/// Note that Free will try to store recycled objects close to the start thus statistically 
+	/// Note that Free will try to store recycled objects close to the start thus statistically
 	/// reducing how far we will typically search in Allocate.
 	/// </remarks>
 	internal void Free(T obj)
@@ -179,7 +179,7 @@ internal class ObjectPool<T> where T : class
 
 		if (_firstItem == null)
 		{
-			// Intentionally not using interlocked here. 
+			// Intentionally not using interlocked here.
 			// In a worst case scenario two objects may be stored into same slot.
 			// It is very unlikely to happen and will only mean that one of the objects will get collected.
 			_firstItem = obj;
@@ -197,7 +197,7 @@ internal class ObjectPool<T> where T : class
 		{
 			if (items[i].Value == null)
 			{
-				// Intentionally not using interlocked here. 
+				// Intentionally not using interlocked here.
 				// In a worst case scenario two objects may be stored into same slot.
 				// It is very unlikely to happen and will only mean that one of the objects will get collected.
 				items[i].Value = obj;
@@ -207,11 +207,11 @@ internal class ObjectPool<T> where T : class
 	}
 
 	/// <summary>
-	/// Removes an object from leak tracking.  
-	/// 
-	/// This is called when an object is returned to the pool.  It may also be explicitly 
+	/// Removes an object from leak tracking.
+	///
+	/// This is called when an object is returned to the pool.  It may also be explicitly
 	/// called if an object allocated from the pool is intentionally not being returned
-	/// to the pool.  This can be of use with pooled arrays if the consumer wants to 
+	/// to the pool.  This can be of use with pooled arrays if the consumer wants to
 	/// return a larger array to the pool than was originally allocated.
 	/// </summary>
 	[Conditional("DEBUG")]

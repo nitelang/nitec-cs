@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace NiteCompiler.CodeAnalysis.Pooling;
+namespace NiteCompiler.Utilities;
 
 [DebuggerDisplay("Count = {Count,nq}")]
 [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]

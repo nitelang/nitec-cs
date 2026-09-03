@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
-namespace NiteCompiler.CodeAnalysis.Pooling;
+namespace NiteCompiler.Utilities;
 
 #if DEBUG
 /// <summary>

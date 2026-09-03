@@ -1,4 +1,4 @@
-namespace NiteCompiler.CodeAnalysis.Pooling;
+namespace NiteCompiler.Utilities;
 
 internal static class ArrayBuilderExtensions
 {

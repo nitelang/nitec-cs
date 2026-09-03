@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace NiteCompiler;
+namespace NiteCompiler.Utilities;
 
 internal static class Guard
 {
