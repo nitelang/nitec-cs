@@ -167,6 +167,8 @@ nodes:
     members:
       - name: Expressions
         type: [Expression]
+      - name: EndOfFileToken
+        type: SyntaxToken
 
   - name: Expression
     base: SyntaxNode
@@ -301,3 +303,23 @@ nodes:
     kinds:
       - name: LogicalOrExpression # x || y
         precedence: ConditionalOr
+
+  - name: Item
+    abstract: true
+    base: SyntaxNode
+
+  - name: ModuleDeclaration
+    base: Item
+    members:
+      - name: ModuleKeyword
+        type: SyntaxToken
+      - name: Members
+        type: [Item]
+
+  - name: BaseTypeDeclaration
+    abstract: true
+    base: Item
+    members:
+      - name: AccessibilityModifierToken
+        type: SyntaxToken
+        null_safety: nullable

@@ -152,7 +152,8 @@ public class Generator : IIncrementalGenerator
 
 			foreach (var member in ownMembers)
 			{
-				writer.WriteLine($"public {member.Type} {member.Name} {{ get; }}");
+				string type = FormatType(member);
+				writer.WriteLine($"public {type} {member.Name} {{ get; }}");
 			}
 
 			if (!kind.Abstract && kind.RelatedKinds.Length > 1)
@@ -173,7 +174,7 @@ public class Generator : IIncrementalGenerator
 			{
 				parameters.Add("SyntaxKind kind");
 			}
-			parameters.AddRange(allMembers.Select(m => $"{m.Type} {ToCamelCase(m.Name)}"));
+			parameters.AddRange(allMembers.Select(m => $"{FormatType(m)} {ToCamelCase(m.Name)}"));
 
 
 			string accessModifier = kind.Abstract ? "private protected" : "public";
@@ -190,7 +191,7 @@ public class Generator : IIncrementalGenerator
 			{
 				foreach (var member in ownMembers)
 				{
-					if (!member.IsArray && member.Type != "SyntaxKind" && !IsPrimitiveType(member.Type))
+					if (!member.IsArray && member.Type != "SyntaxKind" && !IsPrimitiveType(member.Type) && member.NullSafety == NullSafety.NotNull)
 					{
 						writer.WriteLine($"Debug.Assert({ToCamelCase(member.Name)} != null);");
 					}
@@ -224,26 +225,13 @@ public class Generator : IIncrementalGenerator
 				writer.WriteLine($"public override TResult Accept<TResult, TArgument>(SyntaxVisitor<TResult, TArgument> visitor, TArgument argument) => visitor.{visitName}(this, argument);");
 			}
 
-			// Slot/child/span methods for sealed nodes
+			// Child/span methods for sealed nodes
 			if (!kind.Abstract)
 			{
 				var allChildren = allMembers.Where(m =>
 					m.IsArray ? nodeTypeNames.Contains(m.ElementType) : nodeTypeNames.Contains(m.Type)).ToArray();
-				var slotChildren = allChildren.Where(m => !m.IsArray).ToArray();
 
 				writer.WriteLine();
-				writer.WriteLine("public override SyntaxNode? GetSlot(int index)");
-				writer.EnterScope("{");
-				writer.WriteLine("return index switch");
-				writer.EnterScope("{");
-				for (int i = 0; i < slotChildren.Length; i++)
-				{
-					writer.WriteLine($"{i} => {slotChildren[i].Name},");
-				}
-				writer.WriteLine("_ => null");
-				writer.ExitScope("};");
-				writer.ExitScope("}");
-
 				writer.WriteLine("public override IEnumerable<SyntaxNode> GetChildNodesAndTokens()");
 				writer.EnterScope("{");
 				foreach (var member in allChildren)
@@ -386,6 +374,14 @@ public class Generator : IIncrementalGenerator
 			or "float" or "double" or "decimal" or "char" or "string" or "object" or "nint" or "nuint" => true,
 			_ => false
 		};
+	}
+
+	private static string FormatType(MemberKind member)
+	{
+		if (member.NullSafety == NullSafety.Nullable && !member.IsArray && member.Type != "SyntaxKind" && !IsPrimitiveType(member.Type))
+			return member.Type + "?";
+
+		return member.Type;
 	}
 
 	private static string WriteVisitorFile(GenerationContent content)

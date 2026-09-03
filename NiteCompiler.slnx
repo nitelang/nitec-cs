@@ -2,6 +2,7 @@
   <Folder Name="/Files/">
     <File Path="../../../../Projects/NiteCompiler/.editorconfig" />
     <File Path="../../../../Projects/NiteCompiler/.gitignore" />
+    <File Path="../../../../Projects/NiteCompiler/global.json" />
     <File Path="../../../../Projects/NiteCompiler/LICENSE" />
     <File Path="../../../../Projects/NiteCompiler/README.md" />
   </Folder>

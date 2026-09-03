@@ -12,13 +12,4 @@ internal static class Guard
 			throw new ArgumentOutOfRangeException(expression);
 		}
 	}
-
-	public static void ValueExists<T>(T value, [CallerArgumentExpression(nameof(value))] string expression = null!)
-		where T : struct, Enum
-	{
-		if (!Enum.IsDefined(value))
-		{
-			throw new ArgumentException(null, expression);
-		}
-	}
 }

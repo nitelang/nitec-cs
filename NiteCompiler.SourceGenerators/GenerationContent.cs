@@ -74,11 +74,11 @@ internal sealed class GenerationContent
 						string rawType = typeList[0].ToString()!;
 						string resolvedType = ResolveTypeName(rawType);
 						return new MemberKind(m.Name, $"ImmutableArray<{resolvedType}>",
-							isArray: true, elementType: resolvedType);
+							isArray: true, elementType: resolvedType, nullSafety: m.NullSafety);
 					}
 
 					string resolved = ResolveTypeName(m.Type.ToString()!);
-					return new MemberKind(m.Name, resolved);
+					return new MemberKind(m.Name, resolved, nullSafety: m.NullSafety);
 				}).ToArray();
 			}
 
@@ -172,13 +172,15 @@ internal sealed record MemberKind
 	public string Type { get; }
 	public bool IsArray { get; }
 	public string ElementType { get; }
+	public NullSafety NullSafety { get; }
 
-	public MemberKind(string name, string type, bool isArray = false, string elementType = "")
+	public MemberKind(string name, string type, bool isArray = false, string elementType = "", NullSafety nullSafety = NullSafety.Nullable)
 	{
 		Name = name;
 		Type = type;
 		IsArray = isArray;
 		ElementType = elementType;
+		NullSafety = nullSafety;
 	}
 }
 

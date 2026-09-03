@@ -52,6 +52,11 @@ public sealed class SyntaxTree
 		throw new NotImplementedException();
 	}
 
+	public IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
+	{
+		return Diagnostics;
+	}
+
 	internal SyntaxNode? LookupForParent(SyntaxNode node)
 	{
 		throw new NotImplementedException();

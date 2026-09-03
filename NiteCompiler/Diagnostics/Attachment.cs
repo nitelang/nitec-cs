@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using NiteCompiler.Utilities;
+
 namespace NiteCompiler.Diagnostics;
 
 public readonly struct Attachment
@@ -7,7 +10,7 @@ public readonly struct Attachment
 
 	public Attachment(AttachmentType type, string message)
 	{
-		Guard.ValueExists(Type = type);
+		Debug.Assert(type.IsValid());
 		Message = message;
 	}
 }
