@@ -20,8 +20,7 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.x
-          cache: true
-          cache-dependency-path: '**/packages.lock.json'
+          # cache: true
 
       - name: Restore
         run: dotnet restore --locked-mode
