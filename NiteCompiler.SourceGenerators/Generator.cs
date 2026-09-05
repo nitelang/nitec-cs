@@ -112,6 +112,15 @@ public class Generator : IIncrementalGenerator
 				writer.WriteLine("_ => false");
 				writer.ExitScope("};");
 				writer.WriteLine();
+				writer.WriteLine("public bool IsContextual => kind switch");
+				writer.EnterScope("{");
+				foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.IsContextual))
+				{
+					writer.WriteLine($"SyntaxKind.{kind.Name} => true,");
+				}
+				writer.WriteLine("_ => false");
+				writer.ExitScope("};");
+				writer.WriteLine();
 				writer.WriteLine("public string? Text => kind switch");
 				writer.EnterScope("{");
 				foreach (SyntaxKind kind in content.SyntaxKinds)

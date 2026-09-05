@@ -6,7 +6,10 @@
     <File Path="../../../../Projects/NiteCompiler/LICENSE" />
     <File Path="../../../../Projects/NiteCompiler/README.md" />
   </Folder>
+  <Project Path="NiteCompiler.Cli/NiteCompiler.Cli.csproj" />
   <Project Path="NiteCompiler.SourceGenerators/NiteCompiler.SourceGenerators.csproj" />
   <Project Path="NiteCompiler.Tests/NiteCompiler.Tests.csproj" />
   <Project Path="NiteCompiler/NiteCompiler.csproj" />
+  <Project Path="NiteLinker.Cli/NiteLinker.Cli.csproj" />
+  <Project Path="NiteLinker/NiteLinker.csproj" />
 </Solution>

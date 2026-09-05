@@ -5,6 +5,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <PublishTrimmed>true</PublishTrimmed>
+        <PublishSingleFile>false</PublishSingleFile>
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,12 +16,12 @@
                           OutputItemType="Analyzer"
                           ReferenceOutputAssembly="false" />
         <Analyzer Include="..\NiteCompiler.SourceGenerators\bin\$(Configuration)\netstandard2.0\YamlDotNet.dll" />
-        
+
         <AdditionalFiles Include="**/*.yml" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.11" />
     </ItemGroup>
-    
+
 </Project>

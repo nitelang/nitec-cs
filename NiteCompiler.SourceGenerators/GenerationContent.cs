@@ -36,7 +36,8 @@ internal sealed class GenerationContent
 			Add(new SyntaxKind(token)
 			{
 				IsToken = true,
-				IsTrivia = token.Trivia
+				IsTrivia = token.Trivia,
+				IsContextual = token.Contextual
 			});
 		}
 
@@ -190,6 +191,7 @@ internal sealed record SyntaxKind
 	public readonly string? Text;
 	public bool IsToken { get; set; }
 	public bool IsTrivia { get; set; }
+	public bool IsContextual { get; set; }
 	public uint? EvaluatedIndex { get; set; }
 
 	public SyntaxKind(string internalName, [Optional] string? text)

@@ -106,8 +106,12 @@ tokens:
     text: "null"
   - name: DefaultKeyword
     text: "default"
+  - name: PublicKeyword
+    text: "public"
+    contextual: true
   - name: FileKeyword
     text: "file"
+    contextual: true
 
   # type keywords
   - name: BoolKeyword
