@@ -25,9 +25,9 @@ public class SourceText
 		{
 			if (field == null)
 			{
-				var newCollection = new LineCollection();
+				var instance = new LineCollection(this);
 
-				Interlocked.CompareExchange(ref field, newCollection, null);
+				Interlocked.CompareExchange(ref field, instance, null);
 			}
 
 			return field;

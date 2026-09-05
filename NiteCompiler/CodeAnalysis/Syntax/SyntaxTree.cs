@@ -31,7 +31,7 @@ public sealed class SyntaxTree
 		SourceText source = SourceText.FromText(text);
 		SyntaxTree syntaxTree = new(source, filePath);
 
-		Parser parser = new(syntaxTree, source, options, syntaxTree.Diagnostics);
+		Parser parser = new(syntaxTree, source, options, syntaxTree.Diagnostics, cancellationToken);
 
 		RootSyntax root = parser.ParseRoot();
 		syntaxTree.Root = root;

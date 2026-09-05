@@ -1,14 +1,13 @@
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using NiteCompiler.CodeAnalysis.Syntax;
 using static TUnit.Assertions.Assert;
-using System.Threading.Tasks;
 
 namespace NiteCompiler.Tests;
 
+[Timeout(10_000)]
 public class ParsingTests
 {
 	[Test]
-	public async Task RandomCharactersTest()
+	public async Task RandomCharactersTest(CancellationToken cancellationToken)
 	{
 		Random rand = Random.Shared;
 
@@ -23,8 +22,10 @@ public class ParsingTests
 				rand.NextBytes(bytes);
 			}
 		}
+		string randomText = new(c);
 
-		// Need check that random characters do not break the lexer and parser logic, and cause no exception :)
-		await That(true).IsTrue();
+		var tree = SyntaxTree.FromText(randomText, cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
 	}
 }

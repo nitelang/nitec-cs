@@ -17,15 +17,18 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 internal sealed partial class Parser
 {
 	private readonly ImmutableArray<SyntaxToken> _tokens;
+	private readonly CancellationToken _cancellationToken;
 	private int _currentIndex = 0;
 	private readonly int _maxIndex;
 
-	public Parser(SyntaxTree tree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
+	public Parser(SyntaxTree tree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics,
+		CancellationToken cancellationToken = default)
 	{
 		Debug.Assert(tree != null);
 		Debug.Assert(source != null);
 		Debug.Assert(options != null);
 		Debug.Assert(diagnostics != null);
+		_cancellationToken = cancellationToken;
 
 		Lexer lexer = new(tree, source, options, diagnostics);
 		var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -35,6 +38,7 @@ internal sealed partial class Parser
 		{
 			token = lexer.Lex();
 			tokens.Add(token);
+			_cancellationToken.ThrowIfCancellationRequested();
 		} while (token.Kind != SyntaxKind.EndOfFile);
 
 		_tokens = tokens.ToImmutableAndFree();
@@ -85,6 +89,4 @@ internal sealed partial class Parser
 	{
 		return kinds.Contains(Current.Kind);
 	}
-
-	private partial class Lexer; // in Lexer.cs
 }

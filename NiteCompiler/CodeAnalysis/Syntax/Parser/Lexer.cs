@@ -1,29 +1,82 @@
+using System.Collections.Immutable;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
+using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
 
-internal partial class Parser
+internal sealed partial class Lexer
 {
-	private sealed partial class Lexer
-	{
-		public SyntaxTree SyntaxTree { get; }
-		public SourceText Source { get; }
-		public NiteParseOptions Options { get; }
-		public DiagnosticBag Diagnostics { get; }
+	public SyntaxTree SyntaxTree { get; }
+	public NiteParseOptions Options { get; }
+	public DiagnosticBag Diagnostics { get; }
+	private SlidingWindow Window { get; }
 
-		public Lexer(SyntaxTree syntaxTree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
+	public Lexer(SyntaxTree syntaxTree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
+	{
+		SyntaxTree = syntaxTree;
+		Options = options;
+		Diagnostics = diagnostics;
+		Window = new SlidingWindow(source);
+	}
+
+	private ResetPoint GetResetPoint()
+	{
+		return new ResetPoint(Window.Position);
+	}
+
+	private void Reset(ResetPoint rp)
+	{
+		Window.Reset(rp.Position);
+	}
+
+	internal ref struct TokenInfo
+	{
+		public SyntaxKind Kind;
+	}
+
+	public SyntaxToken Lex()
+	{
+		TokenInfo info = default;
+
+		ImmutableArray<SyntaxTrivia> leading, trailing;
+		var trivia = ArrayBuilder<SyntaxTrivia>.GetInstance();
+
+		ReadTrivia(true, trivia);
+		leading = trivia.ToImmutableAndClear();
+
+		Window.Start();
+		ReadToken(ref info);
+		TextSpan span = Window.LexemeSpan;
+
+		ReadTrivia(false, trivia);
+		trailing = trivia.ToImmutableAndFree();
+
+		return new SyntaxToken(info.Kind, Window.LexemeSpan, leading, trailing, SyntaxTree);
+	}
+
+	private void ReadToken(ref TokenInfo info)
+	{
+		if (Window.IsAtTheEnd)
 		{
-			SyntaxTree = syntaxTree;
-			Source = source;
-			Options = options;
-			Diagnostics = diagnostics;
+			info.Kind = SyntaxKind.EndOfFile;
+			return;
 		}
 
-		public SyntaxToken Lex()
+		switch (Window.Current)
 		{
-			throw new NotImplementedException();
+
+			default:
+				//ReadIdentifier(ref info);
+
+				if (Window.Width == 0)
+				{
+					Window.Advance();
+					info.Kind = SyntaxKind.BadToken;
+				}
+
+				break;
 		}
 	}
 }

@@ -150,11 +150,17 @@ tokens:
   # trivia
   - name: EmptySpaceTrivia
     trivia: true
+  - name: LineBreakTrivia
+    trivia: true
   - name: NewLineTrivia
     trivia: true
   - name: SingleLineComment
     trivia: true
   - name: MultiLineComment
+    trivia: true
+  - name: SingleLineDocs
+    trivia: true
+  - name: MultiLineDocs
     trivia: true
   - name: ShebangTrivia
     trivia: true

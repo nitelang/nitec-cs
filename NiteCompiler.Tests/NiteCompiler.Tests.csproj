@@ -13,4 +13,8 @@
         <PackageReference Include="TUnit" Version="1.65.68" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NiteCompiler\NiteCompiler.csproj" />
+    </ItemGroup>
+
 </Project>

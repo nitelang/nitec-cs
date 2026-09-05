@@ -57,16 +57,14 @@ public sealed class SyntaxToken : SyntaxNode
 		}
 	}
 
-	public SyntaxToken(SyntaxKind kind, int position, int width,
+	public SyntaxToken(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,
 		SyntaxTree syntaxTree) : base(syntaxTree)
 	{
-		Debug.Assert(kind.IsToken && kind.IsValid());
-		Debug.Assert(position >= 0);
-		Debug.Assert(width >= 0);
+		Debug.Assert(kind is { IsToken: true } or SyntaxKind.BadToken && kind.IsValid());
 
 		Kind = kind;
-		Span = new TextSpan(position, width);
+		Span = span;
 		LeadingTrivia = leadingTrivia;
 		TrailingTrivia = trailingTrivia;
 	}
@@ -97,6 +95,6 @@ public sealed class SyntaxToken : SyntaxNode
 	/// <returns>New instance of <see cref="SyntaxToken"/>, with different syntax <paramref name="kind"/>.</returns>
 	public SyntaxToken WithKind(SyntaxKind kind)
 	{
-		return new SyntaxToken(kind, Span.Start, Span.Length, LeadingTrivia, TrailingTrivia, SyntaxTree);
+		return new SyntaxToken(kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree);
 	}
 }

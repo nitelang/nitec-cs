@@ -26,7 +26,8 @@ internal sealed class GenerationContent
 	public void AddDefaultTokens()
 	{
 		Add(new SyntaxKind("None") { IsToken = true, EvaluatedIndex = 0 });
-		Add(new SyntaxKind("EndOfFile") { IsToken = true, EvaluatedIndex = uint.MaxValue });
+		Add(new SyntaxKind("EndOfFile") { IsToken = true, EvaluatedIndex = 1 });
+		Add(new SyntaxKind("BadToken") { IsToken = true, EvaluatedIndex = uint.MaxValue });
 	}
 
 	public void ConsumeData(SyntaxData data)
