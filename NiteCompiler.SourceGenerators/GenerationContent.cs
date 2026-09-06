@@ -38,7 +38,8 @@ internal sealed class GenerationContent
 			{
 				IsToken = true,
 				IsTrivia = token.Trivia,
-				IsContextual = token.Contextual
+				IsContextual = token.Contextual,
+				IsKeyword = token.Text != null && char.IsLetter(token.Text[0])
 			});
 		}
 
@@ -193,6 +194,7 @@ internal sealed record SyntaxKind
 	public bool IsToken { get; set; }
 	public bool IsTrivia { get; set; }
 	public bool IsContextual { get; set; }
+	public bool IsKeyword { get; set; }
 	public uint? EvaluatedIndex { get; set; }
 
 	public SyntaxKind(string internalName, [Optional] string? text)

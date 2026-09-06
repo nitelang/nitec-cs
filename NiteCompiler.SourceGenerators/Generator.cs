@@ -134,6 +134,22 @@ public class Generator : IIncrementalGenerator
 				writer.ExitScope("};");
 			}
 			writer.ExitScope("}");
+
+			writer.WriteLine("public static SyntaxKind GetKeyword(string text)");
+			writer.EnterScope("{");
+			{
+				writer.WriteLine("return text switch");
+				writer.EnterScope("{");
+				{
+					foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.IsKeyword))
+					{
+						writer.WriteLine($"\"{EscapeCsString(kind.Text!)}\" => SyntaxKind.{kind.Name},");
+					}
+					writer.WriteLine("_ => default");
+				}
+				writer.ExitScope("};");
+			}
+			writer.ExitScope("}");
 		}
 		writer.ExitScope("}");
 

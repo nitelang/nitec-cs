@@ -88,6 +88,16 @@ public sealed class SyntaxToken : SyntaxNode
 	public override IEnumerable<SyntaxNode> GetChildNodesAndTokens() => [];
 	public override IEnumerable<SyntaxToken> GetChildTokens() => [];
 
+	public string GetText()
+	{
+		return SyntaxTree.Text.GetText(Span);
+	}
+
+	public ReadOnlySpan<char> GetTextAsSpan()
+	{
+		return SyntaxTree.Text.AsSpan(Span);
+	}
+
 	/// <summary>
 	/// Creates a copy of <see langword="this"/> token with other kind.
 	/// </summary>

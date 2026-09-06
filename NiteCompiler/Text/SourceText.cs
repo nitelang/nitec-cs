@@ -39,6 +39,26 @@ public class SourceText
 		_text.CopyTo(sourceIndex, destination, destinationIndex, count);
 	}
 
+	public string GetText(int start, int length)
+	{
+		return _text.Substring(start, length);
+	}
+
+	public string GetText(TextSpan span)
+	{
+		return _text.Substring(span.Start, span.Length);
+	}
+
+	public ReadOnlySpan<char> AsSpan(int start, int length)
+	{
+		return _text.AsSpan(start, length);
+	}
+
+	public ReadOnlySpan<char> AsSpan(TextSpan span)
+	{
+		return _text.AsSpan(span.Start, span.Length);
+	}
+
 	public char this[int index]
 	{
 		get
