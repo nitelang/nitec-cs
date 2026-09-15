@@ -52,4 +52,12 @@ public class ParsingTests
 
 		await That(tree).IsNotNull();
 	}
+
+	[Test]
+	public async Task TMP_ExpressionsTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("3 + 2 / 4", cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
+	}
 }

@@ -176,7 +176,7 @@ nodes:
     base: SyntaxNode
     members:
       - name: Expressions
-        type: [Expression]
+        type: <Expression>
       - name: EndOfFileToken
         type: SyntaxToken
 
@@ -318,13 +318,19 @@ nodes:
     abstract: true
     base: SyntaxNode
 
+  #- name: Attribute
+  #  base: SyntaxNode
+  #  members:
+  #    - name: Name
+  #      type: ExpressionSyntax
+
   - name: ModuleDeclaration
     base: Item
     members:
       - name: ModuleKeyword
         type: SyntaxToken
       - name: Members
-        type: [Item]
+        type: <Item>
 
   - name: BaseTypeDeclaration
     abstract: true

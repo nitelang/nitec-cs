@@ -80,7 +80,25 @@ internal sealed class GenerationContent
 							isArray: true, elementType: resolvedType, nullSafety: m.NullSafety);
 					}
 
-					string resolved = ResolveTypeName(m.Type.ToString()!);
+					string typeStr = m.Type.ToString()!;
+
+					if (typeStr.StartsWith("<") && typeStr.EndsWith(">"))
+					{
+						string inner = typeStr.Substring(1, typeStr.Length - 2);
+						string resolvedInner = ResolveTypeName(inner);
+						return new MemberKind(m.Name, $"SyntaxList<{resolvedInner}>",
+							isArray: true, elementType: resolvedInner, nullSafety: m.NullSafety);
+					}
+
+					if (typeStr.StartsWith("separated<") && typeStr.EndsWith(">"))
+					{
+						string inner = typeStr.Substring("separated<".Length, typeStr.Length - "separated<".Length - 1);
+						string resolvedInner = ResolveTypeName(inner);
+						return new MemberKind(m.Name, $"SeparatedSyntaxList<{resolvedInner}>",
+							isArray: true, elementType: resolvedInner, nullSafety: m.NullSafety);
+					}
+
+					string resolved = ResolveTypeName(typeStr);
 					return new MemberKind(m.Name, resolved, nullSafety: m.NullSafety);
 				}).ToArray();
 			}
@@ -196,6 +214,7 @@ internal sealed record SyntaxKind
 	public bool IsContextual { get; set; }
 	public bool IsKeyword { get; set; }
 	public uint? EvaluatedIndex { get; set; }
+	public Precedence? Precedence { get; set; }
 
 	public SyntaxKind(string internalName, [Optional] string? text)
 	{
@@ -208,5 +227,6 @@ internal sealed record SyntaxKind
 		Name = data.Name;
 		Text = data.Text;
 		IsToken = true;
+		Precedence = data.Precedence;
 	}
 }

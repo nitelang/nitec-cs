@@ -76,6 +76,7 @@ public class Generator : IIncrementalGenerator
 		writer.WriteLine("#nullable enable");
 		writer.WriteLine("using System.Collections.Immutable;");
 		writer.WriteLine("using System.Diagnostics;");
+		writer.WriteLine("using NiteCompiler.Utilities;");
 
 		writer.WriteLine("namespace NiteCompiler.CodeAnalysis.Syntax;");
 		writer.WriteLine();
@@ -132,22 +133,36 @@ public class Generator : IIncrementalGenerator
 				}
 				writer.WriteLine("_ => null");
 				writer.ExitScope("};");
-			}
-			writer.ExitScope("}");
-
-			writer.WriteLine("public static SyntaxKind GetKeyword(string text)");
-			writer.EnterScope("{");
-			{
-				writer.WriteLine("return text switch");
+				writer.WriteLine();
+				writer.WriteLine("public Precedence GetPrecedence()");
 				writer.EnterScope("{");
 				{
-					foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.IsKeyword))
+					writer.WriteLine("return kind switch");
+					writer.EnterScope("{");
+					foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.Precedence != null))
 					{
-						writer.WriteLine($"\"{EscapeCsString(kind.Text!)}\" => SyntaxKind.{kind.Name},");
+						writer.WriteLine($"SyntaxKind.{kind.Name} => Precedence.{kind.Precedence},");
 					}
-					writer.WriteLine("_ => default");
+					writer.WriteLine("_ => throw ExceptionUtilities.Unreachable()");
+					writer.ExitScope("};");
 				}
-				writer.ExitScope("};");
+				writer.ExitScope("}");
+
+				writer.WriteLine("public static SyntaxKind GetKeyword(string text)");
+				writer.EnterScope("{");
+				{
+					writer.WriteLine("return text switch");
+					writer.EnterScope("{");
+					{
+						foreach (SyntaxKind kind in content.SyntaxKinds.Where(k => k.IsKeyword))
+						{
+							writer.WriteLine($"\"{EscapeCsString(kind.Text!)}\" => SyntaxKind.{kind.Name},");
+						}
+						writer.WriteLine("_ => default");
+					}
+					writer.ExitScope("};");
+				}
+				writer.ExitScope("}");
 			}
 			writer.ExitScope("}");
 		}

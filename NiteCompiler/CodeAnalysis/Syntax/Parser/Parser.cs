@@ -16,6 +16,7 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 /// </remarks>
 internal sealed partial class Parser
 {
+	private readonly SyntaxTree _tree;
 	private readonly ImmutableArray<SyntaxToken> _tokens;
 	private readonly CancellationToken _cancellationToken;
 	private int _currentIndex = 0;
@@ -29,6 +30,7 @@ internal sealed partial class Parser
 		Debug.Assert(options != null);
 		Debug.Assert(diagnostics != null);
 		_cancellationToken = cancellationToken;
+		_tree = tree;
 
 		Lexer lexer = new(tree, source, options, diagnostics);
 		var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -64,6 +66,11 @@ internal sealed partial class Parser
 		SyntaxToken current = Current;
 		_currentIndex++;
 		return current;
+	}
+
+	private SyntaxToken? MatchContextualOrNot(params ReadOnlySpan<SyntaxKind> kinds)
+	{
+		return kinds.Contains(SyntaxKind.GetKeyword(Current.GetText())) ? Current : null;
 	}
 
 	[DebuggerStepThrough]
