@@ -69,6 +69,11 @@ public sealed class SyntaxToken : SyntaxNode
 		TrailingTrivia = trailingTrivia;
 	}
 
+	public bool IsBefore(SyntaxNode afterNode)
+	{
+		return Span.End == afterNode.Span.Start;
+	}
+
 	public override void Accept(SyntaxVisitor visitor)
 	{
 		visitor.Visit(this);

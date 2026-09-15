@@ -65,7 +65,9 @@ internal sealed partial class Lexer
 
 		switch (_window.Current)
 		{
-
+			case >= '0' and <= '9':
+				ReadNumber(ref info);
+				break;
 			default:
 				//ReadIdentifier(ref info);
 
