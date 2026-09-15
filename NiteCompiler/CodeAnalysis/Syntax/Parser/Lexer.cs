@@ -11,24 +11,24 @@ internal sealed partial class Lexer
 	public SyntaxTree SyntaxTree { get; }
 	public NiteParseOptions Options { get; }
 	public DiagnosticBag Diagnostics { get; }
-	private SlidingWindow Window { get; }
+	private SlidingWindow _window;
 
 	public Lexer(SyntaxTree syntaxTree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
 	{
 		SyntaxTree = syntaxTree;
 		Options = options;
 		Diagnostics = diagnostics;
-		Window = new SlidingWindow(source);
+		_window = new SlidingWindow(source);
 	}
 
 	private ResetPoint GetResetPoint()
 	{
-		return new ResetPoint(Window.Position);
+		return new ResetPoint(_window.Position);
 	}
 
 	private void Reset(ResetPoint rp)
 	{
-		Window.Reset(rp.Position);
+		_window.Reset(rp.Position);
 	}
 
 	internal ref struct TokenInfo
@@ -45,33 +45,33 @@ internal sealed partial class Lexer
 		ReadTrivia(true, trivia);
 		var leading = trivia.ToImmutableAndClear();
 
-		Window.Start();
+		_window.Start();
 		ReadToken(ref info);
-		TextSpan span = Window.LexemeSpan;
+		TextSpan span = _window.LexemeSpan;
 
 		ReadTrivia(false, trivia);
 		var trailing = trivia.ToImmutableAndFree();
 
-		return new SyntaxToken(info.Kind, Window.LexemeSpan, leading, trailing, SyntaxTree);
+		return new SyntaxToken(info.Kind, _window.LexemeSpan, leading, trailing, SyntaxTree);
 	}
 
 	private void ReadToken(ref TokenInfo info)
 	{
-		if (Window.IsAtTheEnd)
+		if (_window.IsAtTheEnd)
 		{
 			info.Kind = SyntaxKind.EndOfFile;
 			return;
 		}
 
-		switch (Window.Current)
+		switch (_window.Current)
 		{
 
 			default:
 				//ReadIdentifier(ref info);
 
-				if (Window.Width == 0)
+				if (_window.Width == 0)
 				{
-					Window.Advance();
+					_window.Advance();
 					info.Kind = SyntaxKind.BadToken;
 				}
 
