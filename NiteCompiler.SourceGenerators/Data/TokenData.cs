@@ -7,4 +7,7 @@ internal sealed record TokenData
 	public bool Trivia { get; set; }
 	public bool Contextual { get; set; }
 	public Precedence? Precedence { get; set; }
+	public string? Binary { get; set; }
+	public string? Unary { get; set; }
+	public string? Assignment { get; set; }
 }

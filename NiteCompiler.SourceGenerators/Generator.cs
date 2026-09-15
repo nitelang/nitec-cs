@@ -147,6 +147,10 @@ public class Generator : IIncrementalGenerator
 					writer.ExitScope("};");
 				}
 				writer.ExitScope("}");
+				EmitExpressionKindMembers(writer, "Binary", content.SyntaxKinds.Where(k => k.Binary != null).Select(k => (k.Name, k.Binary!)));
+				EmitExpressionKindMembers(writer, "Unary", content.SyntaxKinds.Where(k => k.Unary != null).Select(k => (k.Name, k.Unary!)));
+				EmitExpressionKindMembers(writer, "Assignment", content.SyntaxKinds.Where(k => k.Assignment != null).Select(k => (k.Name, k.Assignment!)));
+				writer.WriteLine();
 
 				writer.WriteLine("public static SyntaxKind GetKeyword(string text)");
 				writer.EnterScope("{");
@@ -468,6 +472,42 @@ public class Generator : IIncrementalGenerator
 		writer.ExitScope("}");
 
 		return writer.ToString();
+	}
+
+	private static void EmitExpressionKindMembers(SourceWriter writer, string prefix, IEnumerable<(string Token, string Kind)> mappings)
+	{
+		string[] kindData = mappings.Select(m => m.Kind).Distinct().ToArray();
+		var mapData = mappings.ToArray();
+
+		writer.WriteLine();
+		writer.WriteLine($"public bool Is{prefix}ExpressionOperatorToken()");
+		writer.EnterScope("{");
+		{
+			writer.WriteLine("return kind switch");
+			writer.EnterScope("{");
+			foreach (var mapping in mapData)
+			{
+				writer.WriteLine($"SyntaxKind.{mapping.Token} => true,");
+			}
+			writer.WriteLine("_ => false");
+			writer.ExitScope("};");
+		}
+		writer.ExitScope("}");
+
+		writer.WriteLine();
+		writer.WriteLine($"public SyntaxKind To{prefix}ExpressionKind()");
+		writer.EnterScope("{");
+		{
+			writer.WriteLine("return kind switch");
+			writer.EnterScope("{");
+			foreach (var mapping in mapData)
+			{
+				writer.WriteLine($"SyntaxKind.{mapping.Token} => SyntaxKind.{mapping.Kind},");
+			}
+			writer.WriteLine("_ => SyntaxKind.None");
+			writer.ExitScope("};");
+		}
+		writer.ExitScope("}");
 	}
 
 	private static string GetVisitName(NodeKind kind)

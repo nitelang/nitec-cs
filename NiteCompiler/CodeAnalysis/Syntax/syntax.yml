@@ -40,6 +40,8 @@ tokens:
     text: ";"
   - name: Plus
     text: "+"
+    binary: AdditionExpression
+    unary: UnaryAdditionExpression
   - name: Minus
     text: "-"
   - name: Asterisk
@@ -67,6 +69,7 @@ tokens:
   # compound operators
   - name: PlusEquals
     text: "+="
+    assignment: AdditionAssignmentExpression
   - name: MinusEquals
     text: "-="
   - name: AsteriskEquals

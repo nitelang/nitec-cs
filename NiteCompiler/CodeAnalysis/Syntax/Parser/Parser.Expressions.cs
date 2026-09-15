@@ -138,15 +138,15 @@ internal partial class Parser
 		}
 
 		// TODO: Adapt this logic
-		/*if (token1Kind is { IsOperator: true, IsAssignmentOperator: true })
+		if (token1Kind.IsAssignmentExpressionOperatorToken())
 		{
 			return (token1Kind, token1Kind.ToAssignmentExpressionKind());
 		}
 
-		if (token1Kind is { IsOperator: true, CanBeBinaryOperator: true })
+		if (token1Kind.IsBinaryExpressionOperatorToken())
 		{
 			return (token1Kind, token1Kind.ToBinaryExpressionKind());
-		}*/
+		}
 
 		// something that doesn't expand the current expression we're looking at.  Bail out and see if we
 		// can end with a conditional expression.

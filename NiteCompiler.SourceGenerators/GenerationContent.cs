@@ -215,6 +215,9 @@ internal sealed record SyntaxKind
 	public bool IsKeyword { get; set; }
 	public uint? EvaluatedIndex { get; set; }
 	public Precedence? Precedence { get; set; }
+	public string? Binary { get; set; }
+	public string? Unary { get; set; }
+	public string? Assignment { get; set; }
 
 	public SyntaxKind(string internalName, [Optional] string? text)
 	{
@@ -228,5 +231,8 @@ internal sealed record SyntaxKind
 		Text = data.Text;
 		IsToken = true;
 		Precedence = data.Precedence;
+		Binary = data.Binary;
+		Unary = data.Unary;
+		Assignment = data.Assignment;
 	}
 }

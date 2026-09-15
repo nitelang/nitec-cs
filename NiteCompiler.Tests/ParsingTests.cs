@@ -64,9 +64,14 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task TMP_ExpressionsTest(CancellationToken cancellationToken)
+	[Arguments("+")]
+	[Arguments("-")]
+	[Arguments("/")]
+	[Arguments("*")]
+	[Arguments("%")]
+	public async Task TMP_ExpressionsTest(string op, CancellationToken cancellationToken)
 	{
-		var tree = SyntaxTree.FromText("3 + 2 / 4", cancellationToken: cancellationToken);
+		var tree = SyntaxTree.FromText($"3 {op} 2", cancellationToken: cancellationToken);
 
 		await That(tree).IsNotNull();
 	}
