@@ -3,11 +3,13 @@
     <File Path="../../../../Projects/NiteCompiler/.editorconfig" />
     <File Path="../../../../Projects/NiteCompiler/.github/workflows/commit-test.yml" />
     <File Path="../../../../Projects/NiteCompiler/.gitignore" />
+    <File Path="../../../../Projects/NiteCompiler/Directory.Build.props" />
     <File Path="../../../../Projects/NiteCompiler/global.json" />
     <File Path="../../../../Projects/NiteCompiler/LICENSE" />
     <File Path="../../../../Projects/NiteCompiler/README.md" />
   </Folder>
   <Project Path="NiteCompiler.Cli/NiteCompiler.Cli.csproj" />
+  <Project Path="NiteCompiler.LanguageServer/NiteCompiler.LanguageServer.csproj" />
   <Project Path="NiteCompiler.SourceGenerators/NiteCompiler.SourceGenerators.csproj" />
   <Project Path="NiteCompiler.Tests/NiteCompiler.Tests.csproj" />
   <Project Path="NiteCompiler/NiteCompiler.csproj" />

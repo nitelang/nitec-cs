@@ -40,18 +40,17 @@ internal sealed partial class Lexer
 	{
 		TokenInfo info = default;
 
-		ImmutableArray<SyntaxTrivia> leading, trailing;
 		var trivia = ArrayBuilder<SyntaxTrivia>.GetInstance();
 
 		ReadTrivia(true, trivia);
-		leading = trivia.ToImmutableAndClear();
+		var leading = trivia.ToImmutableAndClear();
 
 		Window.Start();
 		ReadToken(ref info);
 		TextSpan span = Window.LexemeSpan;
 
 		ReadTrivia(false, trivia);
-		trailing = trivia.ToImmutableAndFree();
+		var trailing = trivia.ToImmutableAndFree();
 
 		return new SyntaxToken(info.Kind, Window.LexemeSpan, leading, trailing, SyntaxTree);
 	}

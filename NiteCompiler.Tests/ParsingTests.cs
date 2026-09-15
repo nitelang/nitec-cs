@@ -7,6 +7,30 @@ namespace NiteCompiler.Tests;
 public class ParsingTests
 {
 	[Test]
+	public async Task ZeroLengthFileTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText(string.Empty, cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
+	}
+
+	[Test]
+	public async Task FileFilledWithSpacesTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText(" \n\r\n\t  \t\v", cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
+	}
+
+	[Test]
+	public async Task ShebangTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("#! usr/bin/python3", cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
+	}
+
+	[Test]
 	public async Task RandomCharactersTest(CancellationToken cancellationToken)
 	{
 		Random rand = Random.Shared;
