@@ -68,6 +68,18 @@ internal sealed partial class Lexer
 			case >= '0' and <= '9':
 				ReadNumber(ref info);
 				break;
+			case '+':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.PlusEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Plus;
+				}
+				break;
 			default:
 				//ReadIdentifier(ref info);
 

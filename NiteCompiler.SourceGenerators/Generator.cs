@@ -96,7 +96,7 @@ public class Generator : IIncrementalGenerator
 		writer.ExitScope("}");
 		writer.WriteLine();
 
-		writer.WriteLine("public static class SyntaxKindExtensions");
+		writer.WriteLine("public static partial class SyntaxKindExtensions");
 		writer.EnterScope("{");
 		{
 			writer.WriteLine("extension(SyntaxKind kind)");

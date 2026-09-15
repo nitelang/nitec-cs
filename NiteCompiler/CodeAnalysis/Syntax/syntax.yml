@@ -2,18 +2,25 @@ tokens:
   # None and EndOfFile is embedded in generator code
   - name: Tilde
     text: "~"
+    unary: OnesComplementExpression
   - name: Exclamation
     text: "!"
+    unary: NegationExpression
   - name: Question
     text: "?"
   - name: Ampersand
     text: "&"
+    binary: AndExpression
+    unary: AddressOfExpression
   - name: Bar
     text: "|"
+    binary: OrExpression
   - name: Percent
     text: "%"
+    binary: ModuloExpression
   - name: Caret
     text: "^"
+    binary: XorExpression
   - name: Underscore
     text: "_"
   - name: OpenParen
@@ -44,16 +51,23 @@ tokens:
     unary: UnaryAdditionExpression
   - name: Minus
     text: "-"
+    binary: SubstractionExpression
+    unary: UnarySubstractionExpression
   - name: Asterisk
     text: "*"
+    binary: MultiplicationExpression
+    unary: DereferenceExpression
   - name: Slash
     text: "/"
+    binary: DivisionExpression
   - name: Backslash
     text: "\\"
   - name: Less
     text: "<"
+    binary: LessExpression
   - name: Greater
     text: ">"
+    binary: GreaterExpression
   - name: Range
     text: ".."
   - name: InclusiveRange
@@ -61,10 +75,13 @@ tokens:
     # these 3 produced at the parser, not in the lexer
   - name: RightShift
     text: ">>"
+    binary: RightShiftExpression
   - name: UnsignedRightShift
     text: ">>>"
+    binary: UnsignedRightShiftExpression
   - name: LeftShift
     text: "<<"
+    binary: LeftShiftExpression
 
   # compound operators
   - name: PlusEquals
@@ -72,33 +89,47 @@ tokens:
     assignment: AdditionAssignmentExpression
   - name: MinusEquals
     text: "-="
+    assignment: SubstractionAssignmentExpression
   - name: AsteriskEquals
     text: "*="
+    assignment: MultiplicationAssignmentExpression
   - name: SlashEquals
     text: "/="
+    assignment: DivisionAssignmentExpression
   - name: PercentEquals
     text: "%="
+    assignment: ModuloAssignmentExpression
   - name: CaretEquals
     text: "^="
+    assignment: XorAssignmentExpression
   - name: AmpersandEquals
     text: "&="
+    assignment: AndAssignmentExpression
   - name: BarEquals
     text: "|="
+    assignment: OrAssignmentExpression
   - name: RightShiftEquals
     text: ">>="
+    assignment: RightShiftAssignmentExpression
   - name: UnsignedRightShiftEquals
     text: ">>>="
+    assignment: UnsignedRightShiftAssignmentExpression
   - name: LeftShiftEquals
     text: "<<="
+    assignment: LeftShiftAssignmentExpression
 
   - name: DoubleEquals
     text: "=="
+    binary: EqualsExpression
   - name: NotEquals
     text: "!="
+    binary: NotEqualsExpression
   - name: LessEquals
     text: "<="
+    binary: LessOrEqualsExpression
   - name: GreaterEquals
     text: ">="
+    binary: GreaterOrEqualsExpression
 
   # keywords
   - name: TrueKeyword
@@ -202,6 +233,16 @@ nodes:
         precedence: Primary
       - name: FalseLiteralExpression
         precedence: Primary
+
+  - name: ParenthesizedExpression
+    base: Expression
+    members:
+      - name: OpenParen
+        type: SyntaxToken
+      - name: Expression
+        type: Expression
+      - name: CloseParen
+        type: SyntaxToken
 
   - name: UnaryExpression
     base: Expression

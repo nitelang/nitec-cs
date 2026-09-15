@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using NiteCompiler.Text;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -153,6 +155,43 @@ internal partial class Parser
 		return (SyntaxKind.None, SyntaxKind.None);
 	}
 
+	private SyntaxToken ConsumeExpressionOperatorToken(SyntaxKind operatorTokenKind)
+	{
+		if (operatorTokenKind == SyntaxKind.RightShift ||
+			operatorTokenKind == SyntaxKind.RightShiftEquals)
+		{
+			// >> and >>=
+			SyntaxToken token1 = PeekAndAdvance();
+			SyntaxToken token2 = PeekAndAdvance();
+
+			return CombineTokens(token1, token2, operatorTokenKind);
+		}
+
+		if (operatorTokenKind == SyntaxKind.UnsignedRightShift ||
+			operatorTokenKind == SyntaxKind.UnsignedRightShiftEquals)
+		{
+			// >>> and >>>=
+			SyntaxToken token1 = PeekAndAdvance();
+			_ = PeekAndAdvance();
+			SyntaxToken token3 = PeekAndAdvance();
+
+			return CombineTokens(token1, token3, operatorTokenKind);
+		}
+
+		return PeekAndAdvance();
+
+		static SyntaxToken CombineTokens(SyntaxToken leftMost, SyntaxToken rightMost, SyntaxKind operatorTokenKind)
+		{
+			return new SyntaxToken(
+				operatorTokenKind,
+				TextSpan.FromBounds(leftMost.Span, rightMost.Span),
+				leftMost.LeadingTrivia,
+				rightMost.TrailingTrivia,
+				leftMost.SyntaxTree
+			);
+		}
+	}
+
 	private ExpressionSyntax? TryExpandExpression(ExpressionSyntax leftOperand, Precedence precedence)
 	{
 		(SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
@@ -162,11 +201,41 @@ internal partial class Parser
 
 		Precedence newPrecedence = operatorExpressionKind.GetPrecedence();
 
-		throw new NotImplementedException();
+		if (newPrecedence < precedence)
+			return null;
+
+		if ((newPrecedence == precedence) && !operatorExpressionKind.IsRightAssociative)
+			return null;
+
+		SyntaxToken operatorToken = ConsumeExpressionOperatorToken(operatorTokenKind);
+
+		if (newPrecedence > operatorExpressionKind.GetPrecedence())
+		{
+			throw ExceptionUtilities.Unreachable();
+		}
+
+		if (operatorToken.Kind.IsAssignmentExpressionOperatorToken())
+		{
+			// return ParseAssignmentExpression(operatorExpressionKind, leftOperand, operatorToken);
+		}
+		if (operatorToken.Kind.IsBinaryExpressionOperatorToken())
+		{
+			return new BinaryExpressionSyntax(operatorExpressionKind, leftOperand.SyntaxTree, leftOperand, operatorToken, ParseSubExpression(newPrecedence));
+		}
+
+		// TODO: error-prone
+		// This is also a valid path?
+		throw ExceptionUtilities.Unreachable();
 	}
 
 	private ExpressionSyntax ParseParenthesizedExpression()
 	{
-		throw new NotImplementedException();
+		SyntaxToken openParen = MatchToken(SyntaxKind.OpenParen);
+
+		ExpressionSyntax expression = ParseExpression();
+
+		SyntaxToken closeParen = MatchToken(SyntaxKind.CloseParen);
+
+		return new ParenthesizedExpressionSyntax(_tree, openParen, expression, closeParen);
 	}
 }
