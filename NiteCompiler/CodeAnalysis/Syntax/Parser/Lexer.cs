@@ -80,6 +80,54 @@ internal sealed partial class Lexer
 					info.Kind = SyntaxKind.Plus;
 				}
 				break;
+			case '-':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.MinusEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Minus;
+				}
+				break;
+			case '*':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.AsteriskEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Asterisk;
+				}
+				break;
+			case '/':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.SlashEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Slash;
+				}
+				break;
+			case '%':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.PercentEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Percent;
+				}
+				break;
 			default:
 				//ReadIdentifier(ref info);
 
