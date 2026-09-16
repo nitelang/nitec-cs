@@ -118,6 +118,9 @@ tokens:
     text: "<<="
     assignment: LeftShiftAssignmentExpression
 
+  - name: Equals
+    text: "="
+    binary: AssignmentExpression
   - name: DoubleEquals
     text: "=="
     binary: EqualsExpression
@@ -130,6 +133,12 @@ tokens:
   - name: GreaterEquals
     text: ">="
     binary: GreaterOrEqualsExpression
+  - name: DoubleAmpersand
+    text: "&&"
+    binary: LogicalAndExpression
+  - name: DoubleBar
+    text: "||"
+    binary: LogicalOrExpression
 
   # keywords
   - name: TrueKeyword
@@ -201,6 +210,10 @@ tokens:
 
   # literals
   - name: NumericLiteral
+
+  # identifiers
+  - name: Identifier
+  - name: EscapedIdentifier
 
 nodes:
   - name: SyntaxNode
@@ -347,6 +360,9 @@ nodes:
         precedence: Relational
       - name: GreaterOrEqualsExpression # x >= y
         precedence: Relational
+
+      - name: AssignmentExpression # x = y
+        precedence: Assignment
 
   - name: LogicalAndExpression
     base: Expression

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
@@ -34,6 +33,7 @@ internal sealed partial class Lexer
 	internal ref struct TokenInfo
 	{
 		public SyntaxKind Kind;
+		public string? Identifier; // Pure identifier value
 	}
 
 	public SyntaxToken Lex()
@@ -65,8 +65,55 @@ internal sealed partial class Lexer
 
 		switch (_window.Current)
 		{
+			case '.':
+				if (_window.Next is '.')
+				{
+					if (_window.Peek(2) is '=')
+					{
+						_window.Advance(3);
+						info.Kind = SyntaxKind.InclusiveRange;
+					}
+					else
+					{
+						_window.Advance(2);
+						info.Kind = SyntaxKind.Range;
+					}
+					break;
+				}
+
+				_window.Advance();
+				info.Kind = SyntaxKind.Dot;
+				break;
+			case ',':
+				_window.Advance();
+				info.Kind = SyntaxKind.Comma;
+				break;
 			case >= '0' and <= '9':
 				ReadNumber(ref info);
+				break;
+			case >= 'A' and <= 'Z':
+			case >= 'a' and <= 'z':
+				ReadIdentifier(ref info);
+				break;
+			case '`':
+				ReadEscapedIdentifier(ref info);
+				break;
+			// TODO: Add DiscardToken
+			case ':':
+				if (_window.Next is ':')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.DoubleColon;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Colon;
+				}
+				break;
+			case ';':
+				_window.Advance();
+				info.Kind = SyntaxKind.Semicolon;
 				break;
 			case '+':
 				if (_window.Next is '=')
@@ -128,8 +175,107 @@ internal sealed partial class Lexer
 					info.Kind = SyntaxKind.Percent;
 				}
 				break;
+			case '~':
+				_window.Advance();
+				info.Kind = SyntaxKind.Tilde;
+				break;
+			case '!':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.NotEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Exclamation;
+				}
+				break;
+			case '=':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.DoubleEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Equals;
+				}
+
+				break;
+			case '&':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.AmpersandEquals;
+				}
+				else if (_window.Next is '&')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.DoubleAmpersand;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Ampersand;
+				}
+				break;
+			case '|':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.BarEquals;
+				}
+				else if (_window.Next is '|')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.DoubleBar;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Bar;
+				}
+				break;
+			case '^':
+				if (_window.Next is '=')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.CaretEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Caret;
+				}
+				break;
+			case '{':
+				_window.Advance();
+				info.Kind = SyntaxKind.OpenBrace;
+				break;
+			case '}':
+				_window.Advance();
+				info.Kind = SyntaxKind.CloseBrace;
+				break;
+			case '(':
+				_window.Advance();
+				info.Kind = SyntaxKind.OpenParen;
+				break;
+			case ')':
+				_window.Advance();
+				info.Kind = SyntaxKind.CloseParen;
+				break;
+			case '[':
+				_window.Advance();
+				info.Kind = SyntaxKind.OpenBracket;
+				break;
+			case ']':
+				_window.Advance();
+				info.Kind = SyntaxKind.CloseBracket;
+				break;
 			default:
-				//ReadIdentifier(ref info);
+				ReadIdentifier(ref info);
 
 				if (_window.Width == 0)
 				{
