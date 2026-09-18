@@ -1,7 +1,7 @@
-﻿namespace NiteCompiler.SourceGenerators.Data;
+namespace NiteCompiler.SourceGenerators.Data;
 
 internal record SyntaxData
 {
-    public TokenData[] Tokens { get; set; } = [];
-    public NodeData[] Nodes { get; set; } = [];
+	public TokenData[] Tokens { get; set; } = [];
+	public NodeData[] Nodes { get; set; } = [];
 }

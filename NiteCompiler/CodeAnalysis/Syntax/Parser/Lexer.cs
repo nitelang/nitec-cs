@@ -97,6 +97,9 @@ internal sealed partial class Lexer
 			case >= 'a' and <= 'z':
 				ReadIdentifier(ref info);
 				Debug.Assert(_window.Width > 0);
+
+				SyntaxKind keyword = SyntaxKind.GetKeyword(info.Identifier!);
+				info.Kind = keyword == SyntaxKind.None ? info.Kind : keyword;
 				break;
 			case '`':
 				ReadEscapedIdentifier(ref info);

@@ -46,21 +46,19 @@ internal partial class Parser
 		{
 			SyntaxKind kind = Current.Kind;
 
-			if (kind == SyntaxKind.OpenParen)
+			switch (kind)
 			{
-				return ParseParenthesizedExpression();
+				case SyntaxKind.OpenParen:
+					return ParseParenthesizedExpression();
+				case SyntaxKind.NumericLiteral:
+					SyntaxToken current = PeekAndAdvance();
+
+					return new LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression, _tree, current);
+				default:
+					// TODO: error-prone
+					// throw in here is just a temp stub, remove it ASAP!
+					throw ExceptionUtilities.UnexpectedValue(kind);
 			}
-
-			if (kind == SyntaxKind.NumericLiteral)
-			{
-				SyntaxToken current = PeekAndAdvance();
-
-				return new LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression, _tree, current);
-			}
-
-			// TODO: error-prone
-			// throw in here is just a temp stub, remove it ASAP!
-			throw ExceptionUtilities.UnexpectedValue(kind);
 		}
 
 		ExpressionSyntax ParsePostFixExpression(ExpressionSyntax expression)

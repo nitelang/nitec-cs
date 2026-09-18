@@ -232,6 +232,7 @@ nodes:
       - name: EndOfFileToken
         type: SyntaxToken
 
+  # expressions
   - name: Expression
     base: SyntaxNode
     abstract: true
@@ -305,75 +306,69 @@ nodes:
     kinds:
       - name: AdditionExpression # x + y
         precedence: Additive
-      - name: AdditionAssignmentExpression # x += y
-        precedence: Assignment
-
       - name: SubstractionExpression # x - y
         precedence: Additive
-      - name: SubstractionAssignmentExpression # x -= y
-        precedence: Assignment
-
       - name: MultiplicationExpression # x * y
         precedence: Multiplicative
-      - name: MultiplicationAssignmentExpression # x *= y
-        precedence: Assignment
-
       - name: DivisionExpression # x / y
         precedence: Multiplicative
-      - name: DivisionAssignmentExpression # x /= y
-        precedence: Assignment
-
       - name: ModuloExpression # x % y
         precedence: Multiplicative
-      - name: ModuloAssignmentExpression # x %= y
-        precedence: Assignment
-
       - name: AndExpression # x & y
         precedence: BitwiseAnd
-      - name: AndAssignmentExpression # x &= y
-        precedence: Assignment
-
       - name: XorExpression # x ^ y
         precedence: BitwiseXor
-      - name: XorAssignmentExpression # x ^= y
-        precedence: Assignment
-
       - name: OrExpression # x | y
         precedence: BitwiseOr
-      - name: OrAssignmentExpression # x |= y
-        precedence: Assignment
-
       - name: RightShiftExpression # x >> y
         precedence: Shift
-      - name: RightShiftAssignmentExpression # x >>= y
-        precedence: Assignment
-
       - name: UnsignedRightShiftExpression # x >>> y
         precedence: Shift
-      - name: UnsignedRightShiftAssignmentExpression # x >>>= y
-        precedence: Assignment
-
       - name: LeftShiftExpression # x << y
         precedence: Shift
-      - name: LeftShiftAssignmentExpression # x <<= y
-        precedence: Assignment
 
       - name: EqualsExpression # x == y
         precedence: Equality
       - name: NotEqualsExpression # x != y
         precedence: Equality
-
       - name: LessExpression # x < y
         precedence: Relational
       - name: LessOrEqualsExpression # x <= y
         precedence: Relational
-
       - name: GreaterExpression # x > y
         precedence: Relational
       - name: GreaterOrEqualsExpression # x >= y
         precedence: Relational
 
+  - name: AssignmentExpression
+    base: Expression
+    members:
+      - name: Left
+        type: ExpressionSyntax
+    kinds:
       - name: AssignmentExpression # x = y
+        precedence: Assignment
+      - name: AdditionAssignmentExpression # x += y
+        precedence: Assignment
+      - name: SubstractionAssignmentExpression # x -= y
+        precedence: Assignment
+      - name: MultiplicationAssignmentExpression # x *= y
+        precedence: Assignment
+      - name: DivisionAssignmentExpression # x /= y
+        precedence: Assignment
+      - name: ModuloAssignmentExpression # x %= y
+        precedence: Assignment
+      - name: AndAssignmentExpression # x &= y
+        precedence: Assignment
+      - name: XorAssignmentExpression # x ^= y
+        precedence: Assignment
+      - name: OrAssignmentExpression # x |= y
+        precedence: Assignment
+      - name: RightShiftAssignmentExpression # x >>= y
+        precedence: Assignment
+      - name: UnsignedRightShiftAssignmentExpression # x >>>= y
+        precedence: Assignment
+      - name: LeftShiftAssignmentExpression # x <<= y
         precedence: Assignment
 
   - name: LogicalAndExpression
@@ -402,15 +397,50 @@ nodes:
       - name: LogicalOrExpression # x || y
         precedence: ConditionalOr
 
+  # types
+  - name: Type
+    abstract: true
+    base: Expression
+
+  # names
+  - name: Name
+    abstract: true
+    base: Type
+
+  - name: PlainName
+    abstract: true
+    base: Name
+
+  - name: IdentifierName
+    base: PlainName
+    members:
+        - name: Identifier
+          type: SyntaxToken
+
+  # TODO: Add GenericName
+
+  # items
   - name: Item
     abstract: true
     base: SyntaxNode
 
-  #- name: Attribute
-  #  base: SyntaxNode
-  #  members:
-  #    - name: Name
-  #      type: ExpressionSyntax
+  - name: Attribute
+    base: SyntaxNode
+    members:
+      - name: Name
+        type: Name
+
+  - name: AttributeList
+    base: SyntaxNode
+    members:
+      - name: Hash
+        type: SyntaxToken
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Attributes
+        type: separated<Attribute>
+      - name: CloseBracket
+        type: SyntaxToken
 
   - name: ModuleDeclaration
     base: Item

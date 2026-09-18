@@ -67,6 +67,7 @@ internal sealed partial class Parser
 				tokens.Add(SyntaxToken.Merge(badTokens.AsSpan()));
 				tokens.Add(token);
 				badTokens.Free();
+				badTokens = null;
 				continue;
 			}
 
