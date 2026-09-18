@@ -53,7 +53,7 @@ internal sealed partial class Lexer
 		ReadTrivia(false, trivia);
 		var trailing = trivia.ToImmutableAndFree();
 
-		return new SyntaxToken(info.Kind, _window.LexemeSpan, leading, trailing, SyntaxTree);
+		return new SyntaxToken(info.Kind, span, leading, trailing, SyntaxTree);
 	}
 
 	private void ReadToken(ref TokenInfo info)
