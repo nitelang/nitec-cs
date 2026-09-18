@@ -143,7 +143,7 @@ public class Generator : IIncrementalGenerator
 					{
 						writer.WriteLine($"SyntaxKind.{kind.Name} => Precedence.{kind.Precedence},");
 					}
-					writer.WriteLine("_ => throw ExceptionUtilities.Unreachable()");
+					writer.WriteLine("_ => throw ExceptionUtilities.UnexpectedValue(kind)");
 					writer.ExitScope("};");
 				}
 				writer.ExitScope("}");

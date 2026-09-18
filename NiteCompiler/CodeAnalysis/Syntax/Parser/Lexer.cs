@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
@@ -90,15 +91,24 @@ internal sealed partial class Lexer
 				break;
 			case >= '0' and <= '9':
 				ReadNumber(ref info);
+				Debug.Assert(_window.Width > 0);
 				break;
 			case >= 'A' and <= 'Z':
 			case >= 'a' and <= 'z':
 				ReadIdentifier(ref info);
+				Debug.Assert(_window.Width > 0);
 				break;
 			case '`':
 				ReadEscapedIdentifier(ref info);
 				break;
-			// TODO: Add DiscardToken
+			case '_':
+				ReadIdentifier(ref info);
+				Debug.Assert(_window.Width > 0);
+				if (_window.Width == 1)
+				{
+					info.Kind = SyntaxKind.Discard;
+				}
+				break;
 			case ':':
 				if (_window.Next is ':')
 				{

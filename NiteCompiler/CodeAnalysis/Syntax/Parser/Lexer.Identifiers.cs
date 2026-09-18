@@ -9,7 +9,7 @@ internal partial class Lexer
 	private void ReadIdentifier(ref TokenInfo info)
 	{
 		char c = _window.Current;
-		if (char.IsAsciiLetter(c) || IsIdentifierCharacterSlow(c))
+		if (char.IsAsciiLetter(c) || c is '_' || IsIdentifierCharacterSlow(c))
 		{
 			_window.Advance();
 			c = _window.Current;

@@ -45,6 +45,8 @@ tokens:
     text: "::"
   - name: Semicolon
     text: ";"
+  - name: Discard
+    text: "_"
   - name: Plus
     text: "+"
     binary: AdditionExpression
