@@ -11,6 +11,7 @@ public sealed class SyntaxToken : SyntaxNode
 {
 	public override SyntaxKind Kind { get; }
 	public override TextSpan Span { get; }
+	public bool IsMissing { get; }
 
 	/// <summary>
 	/// Immutable array of leading trivia attached to <see langword="this"/> token.
@@ -59,14 +60,16 @@ public sealed class SyntaxToken : SyntaxNode
 
 	public SyntaxToken(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,
-		SyntaxTree syntaxTree) : base(syntaxTree)
+		SyntaxTree syntaxTree, bool isMissing = false) : base(syntaxTree)
 	{
-		Debug.Assert(kind is { IsToken: true } or SyntaxKind.BadToken && kind.IsValid());
+		Debug.Assert(kind is { IsToken: true } or SyntaxKind.BadToken);
+		Debug.Assert(kind.IsValid());
 
 		Kind = kind;
 		Span = span;
 		LeadingTrivia = leadingTrivia;
 		TrailingTrivia = trailingTrivia;
+		IsMissing = isMissing;
 	}
 
 	public bool IsBefore(SyntaxNode afterNode)
@@ -111,5 +114,49 @@ public sealed class SyntaxToken : SyntaxNode
 	public SyntaxToken WithKind(SyntaxKind kind)
 	{
 		return new SyntaxToken(kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree);
+	}
+
+	internal static SyntaxToken Merge(SyntaxToken left, SyntaxToken right)
+	{
+		return new SyntaxToken(
+			left.Kind,
+			TextSpan.FromBounds(left.Span, right.Span),
+			left.LeadingTrivia,
+			right.TrailingTrivia,
+			left.SyntaxTree
+		);
+	}
+
+	internal static SyntaxToken Merge(SyntaxToken left, SyntaxToken right, SyntaxKind newKind)
+	{
+		return new SyntaxToken(
+			newKind,
+			TextSpan.FromBounds(left.Span, right.Span),
+			left.LeadingTrivia,
+			right.TrailingTrivia,
+			left.SyntaxTree
+		);
+	}
+
+	internal static SyntaxToken Merge(params ReadOnlySpan<SyntaxToken> tokens)
+	{
+		switch (tokens.Length)
+		{
+			case 0:
+				throw new ArgumentException("Cannot merge zero tokens.");
+			case 1:
+				return tokens[0];
+			case 2:
+				return Merge(tokens[0], tokens[1]);
+			default:
+				SyntaxToken left = tokens[0], right = tokens[^1];
+				return new SyntaxToken(
+					left.Kind,
+					TextSpan.FromBounds(left.Span, right.Span),
+					left.LeadingTrivia,
+					right.TrailingTrivia,
+					left.SyntaxTree
+				);
+		}
 	}
 }

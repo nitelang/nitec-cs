@@ -61,6 +61,14 @@ internal sealed class ArrayBuilder<T> : IReadOnlyList<T>, ICollection<T>
 	#endregion
 
 	/// <summary>
+	/// Returns read-only span of current builder.
+	/// </summary>
+	public ReadOnlySpan<T> AsSpan()
+	{
+		return ImmutableCollectionsMarshal.AsMemory(_builder).Span;
+	}
+
+	/// <summary>
 	/// Realizes the array.
 	/// </summary>
 	public ImmutableArray<T> ToImmutable()

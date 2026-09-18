@@ -249,6 +249,16 @@ nodes:
       - name: FalseLiteralExpression
         precedence: Primary
 
+  - name: InterpolatedStringExpression
+    base: Expression
+    members:
+      - name: BeginToken
+        type: SyntaxToken
+      - name: Content
+        type: <SyntaxToken>
+      - name: EndToken
+        type: SyntaxToken
+
   - name: ParenthesizedExpression
     base: Expression
     members:

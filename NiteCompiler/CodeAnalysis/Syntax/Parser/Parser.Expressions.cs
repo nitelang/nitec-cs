@@ -164,7 +164,7 @@ internal partial class Parser
 			SyntaxToken token1 = PeekAndAdvance();
 			SyntaxToken token2 = PeekAndAdvance();
 
-			return CombineTokens(token1, token2, operatorTokenKind);
+			return SyntaxToken.Merge(token1, token2, operatorTokenKind);
 		}
 
 		if (operatorTokenKind == SyntaxKind.UnsignedRightShift ||
@@ -175,21 +175,10 @@ internal partial class Parser
 			_ = PeekAndAdvance();
 			SyntaxToken token3 = PeekAndAdvance();
 
-			return CombineTokens(token1, token3, operatorTokenKind);
+			return SyntaxToken.Merge(token1, token3, operatorTokenKind);
 		}
 
 		return PeekAndAdvance();
-
-		static SyntaxToken CombineTokens(SyntaxToken leftMost, SyntaxToken rightMost, SyntaxKind operatorTokenKind)
-		{
-			return new SyntaxToken(
-				operatorTokenKind,
-				TextSpan.FromBounds(leftMost.Span, rightMost.Span),
-				leftMost.LeadingTrivia,
-				rightMost.TrailingTrivia,
-				leftMost.SyntaxTree
-			);
-		}
 	}
 
 	private ExpressionSyntax? TryExpandExpression(ExpressionSyntax leftOperand, Precedence precedence)

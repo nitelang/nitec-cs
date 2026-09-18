@@ -5,6 +5,7 @@ namespace NiteCompiler.Utilities;
 
 internal static class ExceptionUtilities
 {
+	[StackTraceHidden]
 	public static Exception UnexpectedValue(object? o)
 	{
 		string output = $"Unexpected value '{o}' of type '{(o != null ? o.GetType().FullName : "<unknown>")}'";
@@ -13,6 +14,7 @@ internal static class ExceptionUtilities
 		return new InvalidOperationException(output);
 	}
 
+	[StackTraceHidden]
 	public static Exception Unreachable([CallerFilePath] string? path = null, [CallerLineNumber] int line = 0)
 	{
 		return new InvalidOperationException($"This program location is thought to be unreachable. File='{path}' Line={line}");

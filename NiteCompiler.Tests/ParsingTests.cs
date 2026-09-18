@@ -69,6 +69,9 @@ public class ParsingTests
 	[Arguments("/")]
 	[Arguments("*")]
 	[Arguments("%")]
+	[Arguments(">>")]
+	[Arguments("<<")]
+	[Arguments(">>>")]
 	public async Task TMP_ExpressionsTest(string op, CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText($"3 {op} 2", cancellationToken: cancellationToken);

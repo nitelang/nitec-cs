@@ -185,6 +185,35 @@ internal sealed partial class Lexer
 					info.Kind = SyntaxKind.Percent;
 				}
 				break;
+			case '<':
+				if (_window.Next is '<')
+				{
+					if (_window.Peek(2) is '=')
+					{
+						_window.Advance(3);
+						info.Kind = SyntaxKind.LeftShiftEquals;
+					}
+					else
+					{
+						_window.Advance(2);
+						info.Kind = SyntaxKind.LeftShift;
+					}
+				}
+				else if (_window.Next is '=')
+				{
+					_window.Advance(1);
+					info.Kind = SyntaxKind.LessEquals;
+				}
+				else
+				{
+					_window.Advance();
+					info.Kind = SyntaxKind.Less;
+				}
+				break;
+			case '>':
+				_window.Advance();
+				info.Kind = SyntaxKind.Greater;
+				break;
 			case '~':
 				_window.Advance();
 				info.Kind = SyntaxKind.Tilde;

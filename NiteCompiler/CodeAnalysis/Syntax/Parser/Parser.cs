@@ -16,6 +16,7 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 /// </remarks>
 internal sealed partial class Parser
 {
+
 	private readonly SyntaxTree _tree;
 	private readonly ImmutableArray<SyntaxToken> _tokens;
 	private readonly CancellationToken _cancellationToken;
@@ -33,17 +34,47 @@ internal sealed partial class Parser
 		_tree = tree;
 
 		Lexer lexer = new(tree, source, options, diagnostics);
-		var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+
+		ArrayBuilder<SyntaxToken> tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+		ArrayBuilder<SyntaxToken>? badTokens = null;
 
 		SyntaxToken token;
 		do
 		{
 			token = lexer.Lex();
+			Debug.Assert(token.Kind != SyntaxKind.None);
+
+			if (token.Kind == SyntaxKind.BadToken)
+			{
+				badTokens ??= ArrayBuilder<SyntaxToken>.GetInstance();
+
+				badTokens.Add(token);
+
+				do
+				{
+					token = lexer.Lex();
+
+					if (token.Kind == SyntaxKind.BadToken)
+					{
+						badTokens.Add(token);
+					}
+					else
+					{
+						break;
+					}
+				} while (true);
+
+				tokens.Add(SyntaxToken.Merge(badTokens.AsSpan()));
+				tokens.Add(token);
+				badTokens.Free();
+				continue;
+			}
+
 			tokens.Add(token);
 			_cancellationToken.ThrowIfCancellationRequested();
 		} while (token.Kind != SyntaxKind.EndOfFile);
 
-		_tokens = tokens.ToImmutableAndFree();
+		_tokens = tokens.ToImmutableAndClear();
 		_maxIndex = _tokens.Length - 1;
 	}
 
