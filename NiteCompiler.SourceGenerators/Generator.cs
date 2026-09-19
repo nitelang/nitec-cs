@@ -284,8 +284,12 @@ public class Generator : IIncrementalGenerator
 					{
 						writer.WriteLine($"foreach (var child in {member.Name})");
 						writer.EnterScope("{");
-						writer.WriteLine("yield return child;");
+						writer.WriteLine("if (child is not null) yield return child;");
 						writer.ExitScope("}");
+					}
+					else if (member.NullSafety == NullSafety.Nullable)
+					{
+						writer.WriteLine($"if ({member.Name} is not null) yield return {member.Name};");
 					}
 					else
 					{
@@ -305,13 +309,20 @@ public class Generator : IIncrementalGenerator
 						{
 							writer.WriteLine($"foreach (var child in {member.Name})");
 							writer.EnterScope("{");
-							writer.WriteLine("yield return child;");
+							writer.WriteLine("if (child is not null) yield return child;");
 							writer.ExitScope("}");
 						}
 					}
 					else if (member.Type != "SyntaxToken")
 					{
-						writer.WriteLine($"yield return {member.Name};");
+						if (member.NullSafety == NullSafety.Nullable)
+						{
+							writer.WriteLine($"if ({member.Name} is not null) yield return {member.Name};");
+						}
+						else
+						{
+							writer.WriteLine($"yield return {member.Name};");
+						}
 					}
 				}
 				writer.WriteLine("yield break;");
@@ -327,13 +338,20 @@ public class Generator : IIncrementalGenerator
 						{
 							writer.WriteLine($"foreach (var child in {member.Name})");
 							writer.EnterScope("{");
-							writer.WriteLine("yield return child;");
+							writer.WriteLine("if (child is not null) yield return child;");
 							writer.ExitScope("}");
 						}
 					}
 					else if (member.Type == "SyntaxToken")
 					{
-						writer.WriteLine($"yield return {member.Name};");
+						if (member.NullSafety == NullSafety.Nullable)
+						{
+							writer.WriteLine($"if ({member.Name} is not null) yield return {member.Name};");
+						}
+						else
+						{
+							writer.WriteLine($"yield return {member.Name};");
+						}
 					}
 				}
 				writer.WriteLine("yield break;");

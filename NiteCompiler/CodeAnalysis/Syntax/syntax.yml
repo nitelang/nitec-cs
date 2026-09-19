@@ -419,10 +419,23 @@ nodes:
 
   # TODO: Add GenericName
 
+  - name: PathName
+    base: Name
+    members:
+      - name: Left
+        type: Name
+      - name: DoubleColon
+        type: SyntaxToken
+      - name: Right
+        type: PlainName
+
   # items
   - name: Item
     abstract: true
     base: SyntaxNode
+    members:
+      - name: Attributes
+        type: <AttributeList>
 
   - name: Attribute
     base: SyntaxNode
@@ -447,6 +460,10 @@ nodes:
     members:
       - name: ModuleKeyword
         type: SyntaxToken
+      - name: Name
+        type: Name
+      - name: Semicolon
+        type: SyntaxToken
       - name: Members
         type: <Item>
 
@@ -457,3 +474,27 @@ nodes:
       - name: AccessibilityModifierToken
         type: SyntaxToken
         null_safety: nullable
+
+  # statements
+  - name: Statement
+    base: SyntaxNode
+    abstract: true
+
+  - name: ExpressionStatement
+    base: Statement
+    members:
+      - name: Expression
+        type: Expression
+      - name: Semicolon
+        type: SyntaxToken
+
+  - name: ReturnStatement
+    base: Statement
+    members:
+      - name: ReturnKeyword
+        type: SyntaxToken
+      - name: Expression
+        type: Expression
+        null_safety: nullable
+      - name: Semicolon
+        type: SyntaxToken
