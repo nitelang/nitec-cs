@@ -357,49 +357,53 @@ public class Generator : IIncrementalGenerator
 				writer.WriteLine("yield break;");
 				writer.ExitScope("}");
 
-				writer.WriteLine("public override TextSpan Span");
-				writer.EnterScope("{");
-				writer.WriteLine("get");
-				writer.EnterScope("{");
-				writer.WriteLine("TextSpan span = default;");
-				writer.WriteLine("bool any = false;");
-				writer.WriteLine("foreach (var child in GetChildNodesAndTokens())");
-				writer.EnterScope("{");
-				writer.WriteLine("if (!any)");
-				writer.EnterScope("{");
-				writer.WriteLine("span = child.Span;");
-				writer.WriteLine("any = true;");
-				writer.ExitScope("}");
-				writer.WriteLine("else");
-				writer.EnterScope("{");
-				writer.WriteLine("span = TextSpan.FromBounds(span.Start, child.Span.End);");
-				writer.ExitScope("}");
-				writer.ExitScope("}");
-				writer.WriteLine("return span;");
-				writer.ExitScope("}");
-				writer.ExitScope("}");
+				string FirstChildOf(MemberKind member) => member.IsArray
+					? $"({member.Name}.Count > 0 ? (SyntaxNode?)({member.Name}[0]) : null)"
+					: $"(SyntaxNode?){member.Name}";
 
-				writer.WriteLine("public override TextSpan FullSpan");
-				writer.EnterScope("{");
-				writer.WriteLine("get");
-				writer.EnterScope("{");
-				writer.WriteLine("TextSpan span = default;");
-				writer.WriteLine("bool any = false;");
-				writer.WriteLine("foreach (var child in GetChildNodesAndTokens())");
-				writer.EnterScope("{");
-				writer.WriteLine("if (!any)");
-				writer.EnterScope("{");
-				writer.WriteLine("span = child.FullSpan;");
-				writer.WriteLine("any = true;");
-				writer.ExitScope("}");
-				writer.WriteLine("else");
-				writer.EnterScope("{");
-				writer.WriteLine("span = TextSpan.FromBounds(span.Start, child.FullSpan.End);");
-				writer.ExitScope("}");
-				writer.ExitScope("}");
-				writer.WriteLine("return span;");
-				writer.ExitScope("}");
-				writer.ExitScope("}");
+				string LastChildOf(MemberKind member) => member.IsArray
+					? $"({member.Name}.Count > 0 ? (SyntaxNode?)({member.Name}[{member.Name}.Count - 1]) : null)"
+					: $"(SyntaxNode?){member.Name}";
+
+				var firstTerms = new List<string>();
+				foreach (var member in allChildren)
+				{
+					firstTerms.Add(FirstChildOf(member));
+					if (!member.IsArray && member.NullSafety == NullSafety.NotNull)
+						break;
+				}
+
+				var lastTerms = new List<string>();
+				foreach (var member in Enumerable.Reverse(allChildren))
+				{
+					lastTerms.Add(LastChildOf(member));
+					if (!member.IsArray && member.NullSafety == NullSafety.NotNull)
+						break;
+				}
+
+				string firstChain = string.Join(" ?? ", firstTerms);
+				string lastChain = string.Join(" ?? ", lastTerms);
+
+				foreach (string property in new[] { "Span", "FullSpan" })
+				{
+					writer.WriteLine($"public override TextSpan {property}");
+					writer.EnterScope("{");
+					writer.WriteLine("get");
+					writer.EnterScope("{");
+					if (allChildren.Length == 0)
+					{
+						writer.WriteLine("return default;");
+					}
+					else
+					{
+						writer.WriteLine($"SyntaxNode? first = {firstChain};");
+						writer.WriteLine($"SyntaxNode? last = {lastChain};");
+						writer.WriteLine("if (first is null) return default;");
+						writer.WriteLine($"return TextSpan.FromBounds(first.{property}.Start, last!.{property}.End);");
+					}
+					writer.ExitScope("}");
+					writer.ExitScope("}");
+				}
 			}
 		}
 		writer.ExitScope("}");

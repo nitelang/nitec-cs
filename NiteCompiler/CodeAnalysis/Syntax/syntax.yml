@@ -479,6 +479,9 @@ nodes:
   - name: Statement
     base: SyntaxNode
     abstract: true
+    members:
+      - name: Attributes
+        type: <AttributeList>
 
   - name: ExpressionStatement
     base: Statement
