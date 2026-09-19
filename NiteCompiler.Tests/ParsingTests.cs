@@ -78,4 +78,18 @@ public class ParsingTests
 
 		await That(tree).IsNotNull();
 	}
+
+	[Test]
+	public async Task ParseTypeTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public type Vec3 {
+		                                   public x: f32;
+		                                   public y: f32;
+		                                   public z: f32;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		await That(tree).IsNotNull();
+	}
 }

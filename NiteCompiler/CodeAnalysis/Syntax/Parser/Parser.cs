@@ -46,7 +46,7 @@ internal sealed partial class Parser
 
 			if (token.Kind == SyntaxKind.BadToken)
 			{
-				badTokens ??= ArrayBuilder<SyntaxToken>.GetInstance();
+				badTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
 				badTokens.Add(token);
 
@@ -67,7 +67,6 @@ internal sealed partial class Parser
 				tokens.Add(SyntaxToken.Merge(badTokens.AsSpan()));
 				tokens.Add(token);
 				badTokens.Free();
-				badTokens = null;
 				continue;
 			}
 
