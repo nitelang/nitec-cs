@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -10,6 +11,15 @@ internal static class Guard
 		if (string.IsNullOrEmpty(id))
 		{
 			throw new ArgumentOutOfRangeException(expression);
+		}
+	}
+
+	public static void IsValid<T>(T value, [CallerArgumentExpression(nameof(value))] string expression = null!)
+		where T : struct, Enum
+	{
+		if (!value.IsValid())
+		{
+			throw new InvalidEnumArgumentException(expression, (int)(object)value, typeof(T));
 		}
 	}
 }

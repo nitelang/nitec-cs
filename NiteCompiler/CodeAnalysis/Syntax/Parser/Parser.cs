@@ -20,6 +20,7 @@ internal sealed partial class Parser
 	private readonly SyntaxTree _tree;
 	private readonly ImmutableArray<SyntaxToken> _tokens;
 	private readonly CancellationToken _cancellationToken;
+	private readonly DiagnosticBag _diagnostics;
 	private int _currentIndex = 0;
 	private readonly int _maxIndex;
 
@@ -32,6 +33,7 @@ internal sealed partial class Parser
 		Debug.Assert(diagnostics != null);
 		_cancellationToken = cancellationToken;
 		_tree = tree;
+		_diagnostics = diagnostics;
 
 		Lexer lexer = new(tree, source, options, diagnostics);
 

@@ -63,6 +63,7 @@ internal partial class Lexer
 			{
 				default:
 					sb.Append(_window.Current);
+					_window.Advance();
 					break;
 				case '`':
 					done = true;
