@@ -143,6 +143,10 @@ tokens:
     binary: LogicalOrExpression
 
   # keywords
+  - name: ModuleKeyword
+    text: "module"
+  - name: TypeKeyword
+    text: "type"
   - name: TrueKeyword
     text: "true"
   - name: FalseKeyword
@@ -244,8 +248,8 @@ nodes:
   - name: Root
     base: SyntaxNode
     members:
-      - name: Expressions
-        type: <Expression>
+      - name: Items
+        type: <Item>
       - name: EndOfFileToken
         type: SyntaxToken
 
@@ -290,7 +294,7 @@ nodes:
   - name: UnaryExpression
     base: Expression
     members:
-      - name: Operator
+      - name: OperatorToken
         type: SyntaxToken
       - name: Value
         type: ExpressionSyntax
@@ -316,7 +320,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: Operator
+      - name: OperatorToken
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -393,7 +397,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: Operator
+      - name: OperatorToken
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -406,7 +410,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: Operator
+      - name: OperatorToken
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -488,6 +492,12 @@ nodes:
       - name: Members
         type: <Item>
 
+  - name: FunctionDeclaration
+    base: Member
+    members:
+      - name: Name
+        type: PlainName
+
   - name: BaseTypeDeclaration
     abstract: true
     base: Member
@@ -501,10 +511,12 @@ nodes:
     members:
       - name: TypeKeyword
         type: SyntaxToken
+      - name: Name
+        type: PlainName # TODO: can be complex Type::SubType
       - name: OpenBrace
         type: SyntaxToken
       - name: Members
-        type: <Item>
+        type: <Member>
       - name: CloseBrace
         type: SyntaxToken
 

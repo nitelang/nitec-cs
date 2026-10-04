@@ -1,3 +1,4 @@
+using System.Reflection;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Diagnostics;
 using static TUnit.Assertions.Assert;
@@ -81,6 +82,14 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseEmptyTypeTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("public type Vec3 {}", cancellationToken: cancellationToken);
+
+		await That(tree.Root.Items[0]).IsTypeOf<TypeDeclarationSyntax>();
+	}
+
+	[Test]
 	public async Task ParseTypeTest(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
@@ -92,6 +101,30 @@ public class ParsingTests
 		                               """, cancellationToken: cancellationToken);
 
 		await That(tree).IsNotNull();
+	}
+
+	[Test]
+	public async Task ParseEmptyModuleTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               module test_name123;
+		                               """);
+
+		await That(tree.Root.Items).Count().IsEqualTo(1);
+		await That(tree.Root.Items[0]).IsTypeOf<ModuleDeclarationSyntax>();
+	}
+
+	[Test]
+	public async Task ParseModuleTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               module test_name123;
+
+		                               public main() {}
+		                               """);
+
+		await That(tree.Root.Items).Count().IsEqualTo(1);
+		await That(tree.Root.Items[0]).IsTypeOf<ModuleDeclarationSyntax>();
 	}
 
 	[Test]

@@ -11,7 +11,6 @@ internal partial class Parser
 	{
 		None = 0,
 		InExpression = 1 << 0,
-		InItemName = 1 << 1,
 	}
 
 	private ExpressionSyntax ParseExpression()
@@ -67,11 +66,11 @@ internal partial class Parser
 			{
 				// This code is for future use
 				SyntaxKind tokenKind = Current.Kind;
-				/*if (tokenKind == SyntaxKind.OpenParen) // method invocation
+				/*if (tokenKind == SyntaxKind.OpenParen) // method invocation()
 				{
 					expression = new InvocationExpressionSyntax(_syntaxTree, expression, ParseParenthesizedArgumentList());
 				}
-				else if (tokenKind == TokenKind.OpenBracket) // method invocation 2
+				else if (tokenKind == TokenKind.OpenBracket) // method invocation[]
 				{
 					expression = new IndexationExpressionSyntax(_syntaxTree, expression, ParseBracketedArgumentList());
 				}

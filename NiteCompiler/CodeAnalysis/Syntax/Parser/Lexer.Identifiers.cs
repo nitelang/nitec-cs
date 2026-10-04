@@ -11,18 +11,18 @@ internal partial class Lexer
 		char c = _window.Current;
 		if (char.IsAsciiLetter(c) || c is '_' || IsIdentifierCharacterSlow(c))
 		{
-			_window.Advance();
-			c = _window.Current;
-
 			// TODO: Pooling
 			StringBuilder sb = new();
 			sb.Append(c);
 
+			_window.Advance();
+			c = _window.Current;
+
 			while (char.IsAsciiLetterOrDigit(c) || c is '_' || IsIdentifierCharacterSlow(c))
 			{
+				sb.Append(c);
 				_window.Advance();
 				c = _window.Current;
-				sb.Append(c);
 			}
 
 			info.Identifier = sb.ToString();

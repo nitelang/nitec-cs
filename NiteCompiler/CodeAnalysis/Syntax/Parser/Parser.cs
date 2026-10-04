@@ -101,15 +101,16 @@ internal sealed partial class Parser
 		return current;
 	}
 
-	private SyntaxToken? MatchContextualOrNot(params ReadOnlySpan<SyntaxKind> kinds)
-	{
-		return kinds.Contains(SyntaxKind.GetKeyword(Current.GetText())) ? Current : null;
-	}
-
 	[DebuggerStepThrough]
 	private void Advance()
 	{
 		_currentIndex++;
+	}
+
+	[DebuggerStepThrough]
+	private SyntaxToken? MatchContextualOrNot(params ReadOnlySpan<SyntaxKind> kinds)
+	{
+		return kinds.Contains(Current.Kind) ? PeekAndAdvance() : null;
 	}
 
 	[DebuggerStepThrough]
