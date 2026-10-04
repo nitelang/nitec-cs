@@ -1,4 +1,5 @@
 using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.Diagnostics;
 using static TUnit.Assertions.Assert;
 
 namespace NiteCompiler.Tests;
@@ -91,5 +92,38 @@ public class ParsingTests
 		                               """, cancellationToken: cancellationToken);
 
 		await That(tree).IsNotNull();
+	}
+
+	[Test]
+	public async Task ParseEmptyFunctionTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("public main() {}");
+
+		await That(tree).IsNotNull();
+		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+	}
+
+	[Test]
+	public async Task ParseEmptyFunctionSemicolonTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("public main();");
+
+		await That(tree).IsNotNull();
+		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+	}
+
+	[Test]
+	public async Task ParseLetTest(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   let x: i32 = 1;
+		                                   let y = 1;
+		                                   let z: i32;
+		                               }
+		                               """);
+
+		await That(tree).IsNotNull();
+		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
 	}
 }

@@ -157,6 +157,23 @@ tokens:
   - name: FileKeyword
     text: "file"
     contextual: true
+  #- name: UnsizedKeyword
+  #  text: "unsized"
+  #- name: VirtKeyword
+  #  text: "virt"
+  #- name: IfKeyword
+  #  text: "if"
+  #- name: ElseKeyword
+  #  text: "else"
+  #- name: LoopKeyword
+  #  text: "loop"
+  #- name: ForKeyword
+  #  text: "for"
+  #- name: WhileKeyword
+  #  text: "while"
+  #- name: DoKeyword
+  #  text: "do"
+  #  contextual: true
 
   # type keywords
   - name: BoolKeyword
@@ -240,7 +257,7 @@ nodes:
   - name: LiteralExpression
     base: Expression
     members:
-      - name: Token
+      - name: Literal
         type: SyntaxToken
     kinds:
       - name: NumericLiteralExpression
@@ -273,7 +290,7 @@ nodes:
   - name: UnaryExpression
     base: Expression
     members:
-      - name: OperatorToken
+      - name: Operator
         type: SyntaxToken
       - name: Value
         type: ExpressionSyntax
@@ -299,7 +316,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: OperatorToken
+      - name: Operator
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -376,7 +393,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: OperatorToken
+      - name: Operator
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -389,7 +406,7 @@ nodes:
     members:
       - name: Left
         type: ExpressionSyntax
-      - name: OperatorToken
+      - name: Operator
         type: SyntaxToken
       - name: Right
         type: ExpressionSyntax
@@ -437,6 +454,10 @@ nodes:
       - name: Attributes
         type: <AttributeList>
 
+  - name: Member
+    abstract: true
+    base: Item
+
   - name: Attribute
     base: SyntaxNode
     members:
@@ -469,11 +490,23 @@ nodes:
 
   - name: BaseTypeDeclaration
     abstract: true
-    base: Item
+    base: Member
     members:
       - name: AccessibilityModifierToken
         type: SyntaxToken
         null_safety: nullable
+
+  - name: TypeDeclaration
+    base: BaseTypeDeclaration
+    members:
+      - name: TypeKeyword
+        type: SyntaxToken
+      - name: OpenBrace
+        type: SyntaxToken
+      - name: Members
+        type: <Item>
+      - name: CloseBrace
+        type: SyntaxToken
 
   # statements
   - name: Statement

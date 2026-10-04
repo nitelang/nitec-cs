@@ -129,4 +129,16 @@ internal sealed partial class Parser
 	{
 		return kinds.Contains(Current.Kind);
 	}
+
+	[DebuggerStepThrough]
+	private bool IsCurrentTokenValidContextualToken()
+	{
+		SyntaxKind next = Peek(1).Kind;
+
+		return next switch
+		{
+			SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier => false, // contextual_kw_modifier name
+			_ => next.IsContextual // contextual token is always valid before another contextual token
+		};
+	}
 }
