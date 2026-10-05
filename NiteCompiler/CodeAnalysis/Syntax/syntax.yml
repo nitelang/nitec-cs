@@ -142,7 +142,7 @@ tokens:
     text: "||"
     binary: LogicalOrExpression
 
-  # keywords
+  # keywords - general
   - name: ModuleKeyword
     text: "module"
   - name: TypeKeyword
@@ -155,6 +155,8 @@ tokens:
     text: "null"
   - name: DefaultKeyword
     text: "default"
+
+  # keywords - modifiers
   - name: PublicKeyword
     text: "public"
     contextual: true
@@ -165,6 +167,10 @@ tokens:
   #  text: "unsized"
   #- name: VirtKeyword
   #  text: "virt"
+
+  # keywords - control flow
+  - name: ReturnKeyword
+    text: "return"
   #- name: IfKeyword
   #  text: "if"
   #- name: ElseKeyword
@@ -179,7 +185,7 @@ tokens:
   #  text: "do"
   #  contextual: true
 
-  # type keywords
+  # keywords - types
   - name: BoolKeyword
     text: bool
   - name: I8Keyword
@@ -461,6 +467,12 @@ nodes:
   - name: Member
     abstract: true
     base: Item
+    members:
+      - name: AccessibilityModifierToken
+        type: SyntaxToken
+        null_safety: nullable
+      - name: Modifiers
+        type: <SyntaxToken>
 
   - name: Attribute
     base: SyntaxNode
@@ -480,6 +492,69 @@ nodes:
       - name: CloseBracket
         type: SyntaxToken
 
+  - name: TypeClause
+    base: SyntaxNode
+    members:
+      - name: Colon
+        type: SyntaxToken
+      - name: Type
+        type: Type
+
+  - name: ExplicitArgumentClause
+    base: SyntaxNode
+    members:
+      - name: Name
+        type: PlainName
+      - name: Colon
+        type: SyntaxToken
+
+  - name: Parameter
+    abstract: true
+    base: SyntaxNode
+
+  - name: NamedParameter
+    base: Parameter
+    members:
+      - name: Name
+        type: PlainName
+      - name: TypeClause
+        type: TypeClause
+
+  #- name: SelfParameter
+  #  base: Parameter
+  #  members:
+  #    - name: SelfKeyword
+  #      type: SyntaxToken
+  #    - name: Dot
+  #      type: SyntaxToken
+  #    - name: Member
+  #      type: PlainName # replace with member access syntax?
+
+  - name: ParameterList
+    base: SyntaxNode
+    members:
+      - name: OpenParen
+        type: SyntaxToken
+      - name: Parameters
+        type: separated<Parameter>
+      - name: CloseParen
+        type: SyntaxToken
+
+  - name: Argument
+    base: SyntaxNode
+    members:
+      - name: ArgumentNameClause
+        type: ExplicitArgumentClause
+        null_safety: nullable
+      - name: Expression
+        type: Expression
+
+  - name: ArgumentList
+    base: SyntaxNode
+    members:
+      - name: Arguments
+        type: separated<Argument>
+
   - name: ModuleDeclaration
     base: Item
     members:
@@ -497,14 +572,14 @@ nodes:
     members:
       - name: Name
         type: PlainName
+      - name: ParameterList
+        type: ParameterList
+      - name: BodyStatement
+        type: Statement
 
   - name: BaseTypeDeclaration
     abstract: true
     base: Member
-    members:
-      - name: AccessibilityModifierToken
-        type: SyntaxToken
-        null_safety: nullable
 
   - name: TypeDeclaration
     base: BaseTypeDeclaration
@@ -527,6 +602,22 @@ nodes:
     members:
       - name: Attributes
         type: <AttributeList>
+
+  - name: EmptyStatement
+    base: Statement
+    members:
+      - name: Semicolon
+        type: SyntaxNode
+
+  - name: BlockStatement
+    base: Statement
+    members:
+      - name: OpenBrace
+        type: SyntaxToken
+      - name: Statements
+        type: <Statement>
+      - name: CloseBrace
+        type: SyntaxToken
 
   - name: ExpressionStatement
     base: Statement

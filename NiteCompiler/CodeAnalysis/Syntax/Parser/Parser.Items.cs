@@ -48,22 +48,65 @@ internal partial class Parser
 		return new ModuleDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, module, name, semicolon, members.ToSyntaxListAndFree());
 	}
 
+	private static bool IsMemberModifier(SyntaxKind kind)
+	{
+		return kind switch
+		{
+			_ => false
+		};
+	}
+
+	private static bool IsContextualStop(SyntaxKind kind)
+	{
+		// curr,   next
+		// unsized type - valid
+		// unsized (    - invalid: unsized is not a contextual keyword, but name of a function
+		// unsized ::   - invalid: part of path
+		// unsized :    - invalid: this is just invalid, suppose user just forgot second colon, or accidentally put space between
+
+		return kind switch
+		{
+			SyntaxKind.OpenBrace => true,
+			SyntaxKind.OpenParen => true,
+			SyntaxKind.OpenBracket => true,
+			SyntaxKind.Colon => true,
+			SyntaxKind.DoubleColon => true,
+			SyntaxKind.EndOfFile => true,
+			_ => false
+		};
+	}
+
 	private MemberSyntax ParseMember()
 	{
 		SyntaxToken? accessibility = MatchContextualOrNot(SyntaxKind.FileKeyword, SyntaxKind.PublicKeyword);
 
+		ArrayBuilder<SyntaxToken> modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
+
+		// TODO: Add modifier tests
+		while (IsMemberModifier(Current.Kind) && (!Current.Kind.IsContextual || IsContextualStop(Peek(1).Kind)))
+		{
+			modifiers.Add(PeekAndAdvance());
+		}
+
 		if (Current.Kind == SyntaxKind.TypeKeyword)
 		{
 			SyntaxToken type = PeekAndAdvance();
-			return ParseTypeDeclaration(accessibility, type);
+			return ParseTypeDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), type);
 		}
 		else
 		{
-			return ParseFunctionDeclaration(accessibility);
+			PlainNameSyntax name = ParsePlainName();
+
+			if (Current.Kind == SyntaxKind.OpenParen)
+			{
+				return ParseFunctionDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), name);
+			}
+
+			throw new NotImplementedException();
 		}
 	}
 
-	private TypeDeclarationSyntax ParseTypeDeclaration(SyntaxToken? accessibility, SyntaxToken type)
+	private TypeDeclarationSyntax ParseTypeDeclaration(SyntaxToken? accessibility, SyntaxList<SyntaxToken> modifiers, SyntaxToken type)
 	{
 		PlainNameSyntax name = ParsePlainName();
 		SyntaxToken openBrace = MatchToken(SyntaxKind.OpenBrace);
@@ -75,11 +118,77 @@ internal partial class Parser
 		}
 		SyntaxToken closeBrace = MatchToken(SyntaxKind.CloseBrace);
 
-		return new TypeDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, type, name, openBrace, members.ToSyntaxListAndFree(), closeBrace);
+		return new TypeDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, type, name, openBrace, members.ToSyntaxListAndFree(), closeBrace);
 	}
 
-	private MemberSyntax ParseFunctionDeclaration(SyntaxToken? accessibility)
+	private MemberSyntax ParseFunctionDeclaration(SyntaxToken? accessibility, SyntaxList<SyntaxToken> modifiers, PlainNameSyntax name)
 	{
+		ParameterListSyntax parameters = ParseParameterList();
+
+		StatementSyntax body = ParseStatement();
+
+		return new FunctionDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, name, parameters, body);
+	}
+
+	#region Arguments & Parameters
+
+	private ParameterSyntax ParseParameter()
+	{
+		PlainNameSyntax name = ParsePlainName();
+
+		TypeClauseSyntax type = ParseTypeClause();
+
+		return new NamedParameterSyntax(_tree, name, type);
+	}
+
+	private ParameterListSyntax ParseParameterList()
+	{
+		SyntaxToken openParen = MatchToken(SyntaxKind.OpenParen);
+		ArrayBuilder<SyntaxNode> parameters = ArrayBuilder<SyntaxNode>.GetInstance();
+
+		if (Current.Kind == SyntaxKind.Comma)
+		{
+			// TODO: report unexpected token
+			PeekAndAdvance(); // TODO: Merge with next token?
+		}
+
+		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseParen))
+		{
+			parameters.Add(ParseParameter());
+
+			if (Current.Kind == SyntaxKind.Comma)
+			{
+				parameters.Add(PeekAndAdvance());
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		SyntaxToken closeParen = MatchToken(SyntaxKind.CloseParen);
+		return new ParameterListSyntax(_tree, openParen, parameters.ToSeparatedSyntaxListAndFree<ParameterSyntax>(), closeParen);
+	}
+
+	#endregion
+
+	#region Clauses
+
+	private TypeClauseSyntax ParseTypeClause()
+	{
+		SyntaxToken colon = MatchToken(SyntaxKind.Colon);
+
 		throw new NotImplementedException();
 	}
+
+	private ExplicitArgumentClauseSyntax ParseExplicitArgumentClause()
+	{
+		PlainNameSyntax name = ParsePlainName();
+
+		SyntaxToken colon = MatchToken(SyntaxKind.Colon);
+
+		return new ExplicitArgumentClauseSyntax(_tree, name, colon);
+	}
+
+	#endregion
 }

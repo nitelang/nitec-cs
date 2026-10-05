@@ -122,24 +122,12 @@ internal sealed partial class Parser
 			return PeekAndAdvance();
 
 		// _diagnostics.ReportExpectedToken(Current.Span.Contextualize(_syntaxTree), kind);
-		return Current.WithKind(kind);
+		return Current.WithKind(kind, isMissing: true);
 	}
 
 	[DebuggerStepThrough]
 	private bool IsPresentedAny(params ReadOnlySpan<SyntaxKind> kinds)
 	{
 		return kinds.Contains(Current.Kind);
-	}
-
-	[DebuggerStepThrough]
-	private bool IsCurrentTokenValidContextualToken()
-	{
-		SyntaxKind next = Peek(1).Kind;
-
-		return next switch
-		{
-			SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier => false, // contextual_kw_modifier name
-			_ => next.IsContextual // contextual token is always valid before another contextual token
-		};
 	}
 }

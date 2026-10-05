@@ -56,16 +56,6 @@ public class ParsingTests
 	}
 
 	[Test]
-	[Arguments("3")]
-	[Arguments("2.4")]
-	public async Task TMP_LiteralTest(string text, CancellationToken cancellationToken)
-	{
-		var tree = SyntaxTree.FromText(text, cancellationToken: cancellationToken);
-
-		await That(tree).IsNotNull();
-	}
-
-	[Test]
 	[Arguments("+")]
 	[Arguments("-")]
 	[Arguments("/")]
@@ -74,11 +64,17 @@ public class ParsingTests
 	[Arguments(">>")]
 	[Arguments("<<")]
 	[Arguments(">>>")]
-	public async Task TMP_ExpressionsTest(string op, CancellationToken cancellationToken)
+	public async Task ExpressionsTest(string op, CancellationToken cancellationToken)
 	{
-		var tree = SyntaxTree.FromText($"3 {op} 2", cancellationToken: cancellationToken);
+		var tree = SyntaxTree.FromText($$"""
+		                                public main() {
+		                                    2 {{op}} 3;
+		                                }
+		                                """, cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		FunctionDeclarationSyntax? function;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That((function?.BodyStatement as BlockStatementSyntax)?.Statements[0]).IsTypeOf<ExpressionStatementSyntax>();
 	}
 
 	[Test]

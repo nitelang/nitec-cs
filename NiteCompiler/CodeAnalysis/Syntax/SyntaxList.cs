@@ -16,7 +16,7 @@ public readonly struct SyntaxList<T> : IEnumerable<T> where T : SyntaxNode
 
 	public SyntaxList(IEnumerable<T> nodes)
 	{
-		_nodes = nodes.ToImmutableArray();
+		_nodes = [.. nodes];
 	}
 
 	public int Count => _nodes.Length;

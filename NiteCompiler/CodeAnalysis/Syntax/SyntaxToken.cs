@@ -110,10 +110,16 @@ public sealed class SyntaxToken : SyntaxNode
 	/// Creates a copy of <see langword="this"/> token with other kind.
 	/// </summary>
 	/// <param name="kind">Kind of new token.</param>
+	/// <param name="isMissing">Is token missing.</param>
 	/// <returns>New instance of <see cref="SyntaxToken"/>, with different syntax <paramref name="kind"/>.</returns>
-	public SyntaxToken WithKind(SyntaxKind kind)
+	public SyntaxToken WithKind(SyntaxKind kind, bool? isMissing = false)
 	{
-		return new SyntaxToken(kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree);
+		return new SyntaxToken(kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree, isMissing ?? IsMissing);
+	}
+
+	public SyntaxToken WithMissing(bool isMissing = true)
+	{
+		return new SyntaxToken(Kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree, isMissing);
 	}
 
 	internal static SyntaxToken Merge(SyntaxToken left, SyntaxToken right)
