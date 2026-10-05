@@ -6,7 +6,17 @@ internal partial class Parser
 {
 	private NameSyntax ParseName(NameOptions options = NameOptions.None)
 	{
-		return ParsePlainName(options);
+		NameSyntax left = ParsePlainName(options);
+
+		while (Current.Kind is SyntaxKind.DoubleColon)
+		{
+			SyntaxToken doubleColon = PeekAndAdvance();
+			PlainNameSyntax right = ParsePlainName(options);
+
+			left = new PathNameSyntax(_tree, left, doubleColon, right);
+		}
+
+		return left;
 	}
 
 	private PlainNameSyntax ParsePlainName(NameOptions options = NameOptions.None)

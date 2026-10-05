@@ -19,7 +19,6 @@ internal sealed partial class Parser
 
 	private readonly SyntaxTree _tree;
 	private readonly ImmutableArray<SyntaxToken> _tokens;
-	private readonly CancellationToken _cancellationToken;
 	private readonly DiagnosticBag _diagnostics;
 	private int _currentIndex = 0;
 	private readonly int _maxIndex;
@@ -31,7 +30,6 @@ internal sealed partial class Parser
 		Debug.Assert(source != null);
 		Debug.Assert(options != null);
 		Debug.Assert(diagnostics != null);
-		_cancellationToken = cancellationToken;
 		_tree = tree;
 		_diagnostics = diagnostics;
 
@@ -73,7 +71,7 @@ internal sealed partial class Parser
 			}
 
 			tokens.Add(token);
-			_cancellationToken.ThrowIfCancellationRequested();
+			cancellationToken.ThrowIfCancellationRequested();
 		} while (token.Kind != SyntaxKind.EndOfFile);
 
 		_tokens = tokens.ToImmutableAndClear();

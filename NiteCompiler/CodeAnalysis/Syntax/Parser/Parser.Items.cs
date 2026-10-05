@@ -102,7 +102,12 @@ internal partial class Parser
 				return ParseFunctionDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), name);
 			}
 
-			throw new NotImplementedException();
+			// else: field
+			TypeClauseSyntax type = ParseTypeClause();
+
+			SyntaxToken semicolon = MatchToken(SyntaxKind.Semicolon);
+
+			return new FieldDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers.ToSyntaxListAndFree(), name, type, semicolon);
 		}
 	}
 
@@ -170,6 +175,77 @@ internal partial class Parser
 		return new ParameterListSyntax(_tree, openParen, parameters.ToSeparatedSyntaxListAndFree<ParameterSyntax>(), closeParen);
 	}
 
+	private ArgumentSyntax ParseArgument()
+	{
+		ExplicitArgumentClauseSyntax? argumentName = null;
+		if (Current.Kind is SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier && Peek(1).Kind is SyntaxKind.Colon)
+		{
+			argumentName = ParseExplicitArgumentClause();
+		}
+
+		ExpressionSyntax expression = ParseExpression();
+
+		return new ArgumentSyntax(_tree, argumentName, expression);
+	}
+
+	private ArgumentListSyntax ParseArgumentList()
+	{
+		SyntaxToken openParen = MatchToken(SyntaxKind.OpenParen);
+		ArrayBuilder<SyntaxNode> parameters = ArrayBuilder<SyntaxNode>.GetInstance();
+
+		if (Current.Kind == SyntaxKind.Comma)
+		{
+			// TODO: report unexpected token
+			PeekAndAdvance(); // TODO: Merge with next token?
+		}
+
+		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseParen))
+		{
+			parameters.Add(ParseArgument());
+
+			if (Current.Kind == SyntaxKind.Comma)
+			{
+				parameters.Add(PeekAndAdvance());
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		SyntaxToken closeParen = MatchToken(SyntaxKind.CloseParen);
+		return new ArgumentListSyntax(_tree, openParen, parameters.ToSeparatedSyntaxListAndFree<ArgumentSyntax>(), closeParen);
+	}
+
+	private ArgumentListSyntax ParseBracketedArgumentList()
+	{
+		SyntaxToken openParen = MatchToken(SyntaxKind.OpenBracket);
+		ArrayBuilder<SyntaxNode> parameters = ArrayBuilder<SyntaxNode>.GetInstance();
+
+		if (Current.Kind == SyntaxKind.Comma)
+		{
+			// TODO: report unexpected token
+			PeekAndAdvance(); // TODO: Merge with next token?
+		}
+
+		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBracket))
+		{
+			parameters.Add(ParseArgument());
+
+			if (Current.Kind == SyntaxKind.Comma)
+			{
+				parameters.Add(PeekAndAdvance());
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		SyntaxToken closeParen = MatchToken(SyntaxKind.CloseBracket);
+		return new ArgumentListSyntax(_tree, openParen, parameters.ToSeparatedSyntaxListAndFree<ArgumentSyntax>(), closeParen);
+	}
+
 	#endregion
 
 	#region Clauses
@@ -178,7 +254,9 @@ internal partial class Parser
 	{
 		SyntaxToken colon = MatchToken(SyntaxKind.Colon);
 
-		throw new NotImplementedException();
+		TypeSyntax type = ParseType();
+
+		return new TypeClauseSyntax(_tree, colon, type);
 	}
 
 	private ExplicitArgumentClauseSyntax ParseExplicitArgumentClause()
@@ -188,6 +266,15 @@ internal partial class Parser
 		SyntaxToken colon = MatchToken(SyntaxKind.Colon);
 
 		return new ExplicitArgumentClauseSyntax(_tree, name, colon);
+	}
+
+	private EqualsClauseSyntax ParseEqualsClause()
+	{
+		SyntaxToken equals = MatchToken(SyntaxKind.Equals);
+
+		ExpressionSyntax expression = ParseExpression();
+
+		return new EqualsClauseSyntax(_tree, equals, expression);
 	}
 
 	#endregion

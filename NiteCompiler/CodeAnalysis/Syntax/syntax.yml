@@ -168,7 +168,9 @@ tokens:
   #- name: VirtKeyword
   #  text: "virt"
 
-  # keywords - control flow
+  # keywords - statements
+  - name: LetKeyword
+    text: "let"
   - name: ReturnKeyword
     text: "return"
   #- name: IfKeyword
@@ -429,6 +431,12 @@ nodes:
     abstract: true
     base: Expression
 
+  - name: PredefinedType
+    base: Type
+    members:
+      - name: Keyword
+        type: SyntaxToken
+
   # names
   - name: Name
     abstract: true
@@ -508,6 +516,14 @@ nodes:
       - name: Colon
         type: SyntaxToken
 
+  - name: EqualsClause
+    base: SyntaxNode
+    members:
+      - name: Equals
+        type: SyntaxToken
+      - name: Expression
+        type: Expression
+
   - name: Parameter
     abstract: true
     base: SyntaxNode
@@ -552,8 +568,22 @@ nodes:
   - name: ArgumentList
     base: SyntaxNode
     members:
+      - name: OpenParen
+        type: SyntaxToken
       - name: Arguments
         type: separated<Argument>
+      - name: CloseParen
+        type: SyntaxToken
+
+  - name: BracketedArgumentList
+    base: SyntaxNode
+    members:
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Arguments
+        type: separated<Argument>
+      - name: CloseBracket
+        type: SyntaxToken
 
   - name: ModuleDeclaration
     base: Item
@@ -595,6 +625,16 @@ nodes:
       - name: CloseBrace
         type: SyntaxToken
 
+  - name: FieldDeclaration
+    base: Member
+    members:
+      - name: Name
+        type: PlainName
+      - name: Type
+        type: TypeClause
+      - name: Semicolon
+        type: SyntaxToken
+
   # statements
   - name: Statement
     base: SyntaxNode
@@ -618,6 +658,20 @@ nodes:
         type: <Statement>
       - name: CloseBrace
         type: SyntaxToken
+
+  - name: LetStatement
+    base: Statement
+    members:
+      - name: Let
+        type: SyntaxNode
+      - name: Name
+        type: PlainName
+      - name: Type
+        type: TypeClause
+        null_safety: nullable
+      - name: Equals
+        type: EqualsClause
+        null_safety: nullable
 
   - name: ExpressionStatement
     base: Statement

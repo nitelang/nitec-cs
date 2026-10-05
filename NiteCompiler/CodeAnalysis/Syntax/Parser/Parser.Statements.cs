@@ -22,6 +22,13 @@ internal partial class Parser
 				SyntaxToken closeBrace = MatchToken(SyntaxKind.CloseBrace);
 
 				return new BlockStatementSyntax(_tree, attributes, openBrace, statements.ToSyntaxListAndFree(), closeBrace);
+			case SyntaxKind.LetKeyword:
+				SyntaxToken let = PeekAndAdvance();
+				PlainNameSyntax name = ParsePlainName();
+				TypeClauseSyntax? type = Current.Kind is SyntaxKind.Colon ? ParseTypeClause() : null;
+				EqualsClauseSyntax? init = Current.Kind is SyntaxKind.Equals ? ParseEqualsClause() : null;
+
+				return new LetStatementSyntax(_tree, attributes, let, name, type, init);
 			case SyntaxKind.Semicolon:
 				SyntaxToken semicolon = PeekAndAdvance();
 				return new EmptyStatementSyntax(_tree, attributes, semicolon);

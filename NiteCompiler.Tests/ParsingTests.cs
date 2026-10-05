@@ -1,4 +1,3 @@
-using System.Reflection;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Diagnostics;
 using static TUnit.Assertions.Assert;
@@ -21,7 +20,7 @@ public class ParsingTests
 	{
 		var tree = SyntaxTree.FromText(" \n\r\n\t  \t\v", cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		await That(tree.GetDiagnostics()).IsEmpty();
 	}
 
 	[Test]
@@ -96,15 +95,13 @@ public class ParsingTests
 		                               }
 		                               """, cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.Items[0]).IsNotNull().And.IsTypeOf<TypeDeclarationSyntax>();
 	}
 
 	[Test]
 	public async Task ParseEmptyModuleTest(CancellationToken cancellationToken)
 	{
-		var tree = SyntaxTree.FromText("""
-		                               module test_name123;
-		                               """);
+		var tree = SyntaxTree.FromText("module test_name123;");
 
 		await That(tree.Root.Items).Count().IsEqualTo(1);
 		await That(tree.Root.Items[0]).IsTypeOf<ModuleDeclarationSyntax>();

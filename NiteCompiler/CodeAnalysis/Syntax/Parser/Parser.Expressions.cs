@@ -224,4 +224,14 @@ internal partial class Parser
 
 		return new ParenthesizedExpressionSyntax(_tree, openParen, expression, closeParen);
 	}
+
+	private TypeSyntax ParseType()
+	{
+		if (IsPresentedAny(SyntaxFacts.TypeKeywords))
+		{
+			return new PredefinedTypeSyntax(_tree, PeekAndAdvance());
+		}
+
+		throw new NotImplementedException();
+	}
 }
