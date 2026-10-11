@@ -146,6 +146,11 @@ internal sealed partial class Lexer
 					_window.Advance(2);
 					info.Kind = SyntaxKind.MinusEquals;
 				}
+				else if (_window.Next is '>')
+				{
+					_window.Advance(2);
+					info.Kind = SyntaxKind.Arrow;
+				}
 				else
 				{
 					_window.Advance();

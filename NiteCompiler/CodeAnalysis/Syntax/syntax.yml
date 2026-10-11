@@ -47,6 +47,8 @@ tokens:
     text: ";"
   - name: Discard
     text: "_"
+  - name: Arrow
+    text: "->"
   - name: Plus
     text: "+"
     binary: AdditionExpression
@@ -508,6 +510,14 @@ nodes:
       - name: Type
         type: Type
 
+  - name: ReturnTypeClause
+    base: SyntaxNode
+    members:
+      - name: Arrow
+        type: SyntaxToken
+      - name: Type
+        type: Type
+
   - name: ExplicitArgumentClause
     base: SyntaxNode
     members:
@@ -604,6 +614,9 @@ nodes:
         type: PlainName
       - name: ParameterList
         type: ParameterList
+      - name: TypeClause
+        type: ReturnTypeClause
+        null_safety: nullable
       - name: BodyStatement
         type: Statement
 

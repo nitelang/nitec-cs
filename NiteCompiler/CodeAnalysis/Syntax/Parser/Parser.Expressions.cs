@@ -232,6 +232,11 @@ internal partial class Parser
 			return new PredefinedTypeSyntax(_tree, PeekAndAdvance());
 		}
 
+		if (Current.Kind is SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier or { IsContextual: true })
+		{
+			return ParseName();
+		}
+
 		throw new NotImplementedException();
 	}
 }

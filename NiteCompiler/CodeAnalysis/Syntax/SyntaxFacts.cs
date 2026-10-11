@@ -5,12 +5,12 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 internal static class SyntaxFacts
 {
 	public static ReadOnlySpan<SyntaxKind> TypeKeywords =>
-		[
-			SyntaxKind.I8Keyword, SyntaxKind.I16Keyword, SyntaxKind.I32Keyword, SyntaxKind.I64Keyword,
-			SyntaxKind.U8Keyword, SyntaxKind.U16Keyword, SyntaxKind.U32Keyword, SyntaxKind.U64Keyword,
-			SyntaxKind.F16Keyword, SyntaxKind.F32Keyword, SyntaxKind.F64Keyword,
-			SyntaxKind.USizeKeyword, SyntaxKind.ISizeKeyword
-		];
+	[
+		SyntaxKind.I8Keyword, SyntaxKind.I16Keyword, SyntaxKind.I32Keyword, SyntaxKind.I64Keyword,
+		SyntaxKind.U8Keyword, SyntaxKind.U16Keyword, SyntaxKind.U32Keyword, SyntaxKind.U64Keyword,
+		SyntaxKind.F16Keyword, SyntaxKind.F32Keyword, SyntaxKind.F64Keyword,
+		SyntaxKind.USizeKeyword, SyntaxKind.ISizeKeyword
+	];
 
 	public static int GetLineBreakWidth(SourceText source, int index)
 	{

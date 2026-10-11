@@ -152,4 +152,29 @@ public class ParsingTests
 		await That(tree).IsNotNull();
 		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
 	}
+
+	[Test]
+	public async Task ValidParent(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               module x;
+
+		                               public type Foo {
+		                                   public bar() -> i32 {
+		                                       return 42;
+		                                   }
+		                               }
+		                               """);
+
+		await VerifyChild(tree.Root);
+
+		async Task VerifyChild(SyntaxNode node)
+		{
+			foreach (SyntaxNode child in node.GetChildNodesAndTokens())
+			{
+				await That(child.Parent).IsEqualTo(node);
+				await VerifyChild(child);
+			}
+		}
+	}
 }

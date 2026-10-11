@@ -130,9 +130,15 @@ internal partial class Parser
 	{
 		ParameterListSyntax parameters = ParseParameterList();
 
+		ReturnTypeClauseSyntax? returnType = null;
+		if (Current.Kind == SyntaxKind.Arrow)
+		{
+			returnType = ParseReturnTypeClause();
+		}
+
 		StatementSyntax body = ParseStatement();
 
-		return new FunctionDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, name, parameters, body);
+		return new FunctionDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, name, parameters, returnType, body);
 	}
 
 	#region Arguments & Parameters
@@ -257,6 +263,15 @@ internal partial class Parser
 		TypeSyntax type = ParseType();
 
 		return new TypeClauseSyntax(_tree, colon, type);
+	}
+
+	private ReturnTypeClauseSyntax ParseReturnTypeClause()
+	{
+		SyntaxToken arrow = MatchToken(SyntaxKind.Arrow);
+
+		TypeSyntax type = ParseType();
+
+		return new ReturnTypeClauseSyntax(_tree, arrow, type);
 	}
 
 	private ExplicitArgumentClauseSyntax ParseExplicitArgumentClause()
