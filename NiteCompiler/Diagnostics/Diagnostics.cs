@@ -7,6 +7,7 @@ public static class Diagnostics
 	public static readonly DiagnosticDescriptor
 		UnterminatedBlockComment = new("unterminated-block-comment", "unterminated block comment"),
 		ExpectedToken = new("expected-token", "expected `{0}`, found `{1}`"),
+		UnexpectedToken = new("unexpected-token", "unexpected token `{0}`"),
 		UnexpectedCharacter = new("unexpected-character", "unexpected character `{0}`"),
 		UnterminatedEscapedIdentifier = new("unterminated-escaped-identifier", "unterminated escaped identifier"),
 		NewlineInEscapedIdentifier = new("newline-in-escaped-identifier", "escaped identifier cannot contain a newline"),
@@ -20,41 +21,51 @@ public static class Diagnostics
 
 	extension(IDiagnosticBag bag)
 	{
-		public void ReportUnterminatedBlockComment()
+		public void ReportUnterminatedBlockComment(Location location)
 		{
-			bag.Add(new Diagnostic(UnterminatedBlockComment, "unterminated block comment"));
+			bag.Add(new Diagnostic(UnterminatedBlockComment, "unterminated block comment", location));
 		}
 
-		public void ReportExpectedToken(SyntaxKind expectedKind, SyntaxKind foundKind)
+		public void ReportExpectedToken(Location location, SyntaxKind expectedKind, SyntaxKind foundKind)
 		{
 			bag.Add(new Diagnostic(ExpectedToken,
-				string.Format(ExpectedToken.MessageFormat, TokenText(expectedKind), TokenText(foundKind))));
+				string.Format(ExpectedToken.MessageFormat, TokenText(expectedKind), TokenText(foundKind)),
+				location));
 		}
 
-		public void ReportUnexpectedCharacter(string character)
+		public void ReportUnexpectedCharacter(Location location, string character)
 		{
-			bag.Add(new Diagnostic(UnexpectedCharacter, string.Format(UnexpectedCharacter.MessageFormat, character)));
+			bag.Add(new Diagnostic(UnexpectedCharacter,
+				string.Format(UnexpectedCharacter.MessageFormat, character),
+				location));
 		}
 
-		public void ReportUnterminatedEscapedIdentifier()
+		public void ReportUnexpectedToken(Location location, SyntaxKind foundKind)
 		{
-			bag.Add(new Diagnostic(UnterminatedEscapedIdentifier, "unterminated escaped identifier"));
+			bag.Add(new Diagnostic(UnexpectedToken,
+				string.Format(UnexpectedToken.MessageFormat, TokenText(foundKind)),
+				location));
 		}
 
-		public void ReportNewlineInEscapedIdentifier()
+		public void ReportUnterminatedEscapedIdentifier(Location location)
 		{
-			bag.Add(new Diagnostic(NewlineInEscapedIdentifier, "escaped identifier cannot contain a newline"));
+			bag.Add(new Diagnostic(UnterminatedEscapedIdentifier, "unterminated escaped identifier", location));
 		}
 
-		public void ReportInvalidUnicodeEscape()
+		public void ReportNewlineInEscapedIdentifier(Location location)
 		{
-			bag.Add(new Diagnostic(InvalidUnicodeEscape, "invalid unicode escape sequence"));
+			bag.Add(new Diagnostic(NewlineInEscapedIdentifier, "escaped identifier cannot contain a newline", location));
 		}
 
-		public void ReportInvalidEscapeSequence(char escape)
+		public void ReportInvalidUnicodeEscape(Location location)
+		{
+			bag.Add(new Diagnostic(InvalidUnicodeEscape, "invalid unicode escape sequence", location));
+		}
+
+		public void ReportInvalidEscapeSequence(Location location, char escape)
 		{
 			bag.Add(new Diagnostic(InvalidEscapeSequence,
-				string.Format(InvalidEscapeSequence.MessageFormat, escape)));
+				string.Format(InvalidEscapeSequence.MessageFormat, escape), location));
 		}
 	}
 }

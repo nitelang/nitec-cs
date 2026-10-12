@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using NiteCompiler.Text;
+using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -143,8 +143,7 @@ internal partial class Lexer
 			switch (_window.Current)
 			{
 				case SlidingWindow.InvalidCharacter:
-					TextSpan span = _window.LexemeSpan;
-					//TODO: _diagnostics.ReportUnterminatedMultiLineComment(span.Contextualize(_syntaxTree));
+					Diagnostics.ReportUnterminatedBlockComment(CreateCurrentWindowLocation());
 					done = true;
 					break;
 				case '*':

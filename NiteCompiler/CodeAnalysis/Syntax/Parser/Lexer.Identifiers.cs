@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using NiteCompiler.Diagnostics;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
 
@@ -50,7 +51,7 @@ internal partial class Lexer
 			if (_window.IsAtTheEnd)
 			{
 				done = true;
-				// TODO: Report diagnostic
+				Diagnostics.ReportUnterminatedEscapedIdentifier(CreateCurrentWindowLocation());
 				continue;
 			}
 
@@ -66,7 +67,7 @@ internal partial class Lexer
 				case '\n':
 				case '\r':
 					done = true;
-					// TODO: Report end of line
+					Diagnostics.ReportNewlineInEscapedIdentifier(CreateCurrentWindowLocation());
 					break;
 				case '\\':
 					_window.Advance();
@@ -112,7 +113,7 @@ internal partial class Lexer
 
 							if (rest != 0)
 							{
-								// TODO: Report diagnostic
+								Diagnostics.ReportInvalidUnicodeEscape(CreateCurrentWindowLocation());
 							}
 							else
 							{
@@ -130,7 +131,7 @@ internal partial class Lexer
 
 							if (rest != 0)
 							{
-								// TODO: Report diagnostic
+								Diagnostics.ReportInvalidUnicodeEscape(CreateCurrentWindowLocation());
 							}
 							else
 							{
@@ -140,7 +141,7 @@ internal partial class Lexer
 							break;
 						default:
 							sb.Append('\\');
-							// TODO: Report diagnostic invalid escape sequence
+							Diagnostics.ReportInvalidEscapeSequence(CreateCurrentWindowLocation(), _window.Current);
 							break;
 					}
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
+using NiteCompiler.Utilities;
 
 namespace NiteCompiler.Compilation;
 
@@ -60,22 +61,75 @@ public partial class NiteCompilation
 		}
 	}
 
-	private void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, Predicate<object>? symbolFilter, CancellationToken cancellationToken = default)
+	public ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default)
 	{
-		BindingDiagnosticBag builder = BindingDiagnosticBag.GetInstance();
-		Debug.Assert(builder.Diagnostics is { });
+		return GetDiagnostics(CompilationStage.Parse, false, symbolFilter: null, cancellationToken: cancellationToken);
+	}
+
+	public ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default)
+	{
+		return GetDiagnostics(CompilationStage.Declare, false, symbolFilter: null, cancellationToken);
+	}
+
+	public ImmutableArray<Diagnostic> GetFunctionBodyDiagnostics(CancellationToken cancellationToken = default)
+	{
+		return GetDiagnostics(CompilationStage.Compile, false, symbolFilter: null, cancellationToken);
+	}
+
+	public ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
+	{
+		return GetDiagnostics(CompilationStage.Compile, true, symbolFilter: null, cancellationToken);
+	}
+
+	private ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, Predicate<object>? symbolFilter, CancellationToken cancellationToken)
+	{
+		var diagnostics = PooledDiagnosticBag.GetInstance();
+		GetDiagnostics(stage, includeEarlierStages, diagnostics, symbolFilter, cancellationToken);
+		return diagnostics.ToImmutableAndFree();
+	}
+
+	private void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, PooledDiagnosticBag diagnostics, Predicate<object>? symbolFilter, CancellationToken cancellationToken = default)
+	{
+		PooledDiagnosticBag builder = PooledDiagnosticBag.GetInstance();
+		Debug.Assert(builder.Diagnostics is not null);
 
 		GetDiagnosticsWithoutSeverityFiltering(stage, includeEarlierStages, builder, symbolFilter, cancellationToken);
 
 		// Before returning diagnostics, we filter warnings to respect compiler flags
-		FilterAndAppendDiagnostics(diagnostics, builder.Diagnostics, cancellationToken);
+		FilterAndAppendDiagnostics(diagnostics.Diagnostics, builder.Diagnostics, cancellationToken);
 		builder.Free();
 	}
 
 	private void GetDiagnosticsWithoutSeverityFiltering(CompilationStage stage, bool includeEarlierStages,
-		BindingDiagnosticBag builder, Predicate<object>? symbolFilter, CancellationToken cancellationToken)
+		PooledDiagnosticBag builder, Predicate<object>? symbolFilter, CancellationToken cancellationToken = default)
 	{
-		throw new NotImplementedException();
+		if (stage.IsInclude(CompilationStage.Parse, includeEarlierStages))
+		{
+			var syntaxTrees = SyntaxTrees;
+			if (_options.ConcurrentBuild)
+			{
+				NiteParallel.For(0, syntaxTrees.Length, i =>
+				{
+					SyntaxTree tree = syntaxTrees[i];
+					builder.AddRange(tree.GetDiagnostics());
+				}, cancellationToken);
+			}
+			else
+			{
+				foreach (SyntaxTree tree in syntaxTrees)
+				{
+					builder.AddRange(tree.GetDiagnostics(cancellationToken));
+				}
+			}
+		}
+
+		// TODO: decl and compile
+
+		cancellationToken.ThrowIfCancellationRequested();
+
+		if (stage.IsInclude(CompilationStage.Compile, includeEarlierStages))
+		{
+		}
 	}
 
 	private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span,

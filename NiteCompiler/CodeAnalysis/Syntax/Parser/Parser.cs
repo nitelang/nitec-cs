@@ -119,7 +119,7 @@ internal sealed partial class Parser
 		if (Current.Kind == kind)
 			return PeekThenAdvance();
 
-		// _diagnostics.ReportExpectedToken(Current.Span.Contextualize(_syntaxTree), kind);
+		_diagnostics.ReportExpectedToken(Current.GetLocation(), kind, Current.Kind);
 		return Current.WithKind(kind, isMissing: true);
 	}
 

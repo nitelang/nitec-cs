@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Utilities;
 
@@ -5,6 +6,11 @@ namespace NiteCompiler.Compilation;
 
 public partial class NiteCompilation
 {
+	/// <summary>
+	/// The syntax trees (parsed from source code) that this compilation was created with.
+	/// </summary>
+	public ImmutableArray<SyntaxTree> SyntaxTrees => _syntaxAndDeclarations.CurrentState.SyntaxTrees;
+
 	public NiteCompilation AddSyntaxTrees(params IEnumerable<SyntaxTree> trees)
 	{
 		if (trees == null)

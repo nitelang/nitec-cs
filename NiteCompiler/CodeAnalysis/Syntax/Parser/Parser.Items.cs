@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -159,7 +160,7 @@ internal partial class Parser
 
 		if (Current.Kind == SyntaxKind.Comma)
 		{
-			// TODO: report unexpected token
+			_diagnostics.ReportUnexpectedToken(Current.GetLocation(), Current.Kind);
 			PeekThenAdvance(); // TODO: Merge with next token?
 		}
 
@@ -201,7 +202,7 @@ internal partial class Parser
 
 		if (Current.Kind == SyntaxKind.Comma)
 		{
-			// TODO: report unexpected token
+			_diagnostics.ReportUnexpectedToken(new SourceLocation(_tree, Current.Span), Current.Kind);
 			PeekThenAdvance(); // TODO: Merge with next token?
 		}
 
@@ -230,8 +231,8 @@ internal partial class Parser
 
 		if (Current.Kind == SyntaxKind.Comma)
 		{
-			// TODO: report unexpected token
-			PeekThenAdvance(); // TODO: Merge with next token?
+			_diagnostics.ReportUnexpectedToken(Current.GetLocation(), Current.Kind);
+			PeekThenAdvance(); // TODO: Append as trailing trivia
 		}
 
 		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBracket))

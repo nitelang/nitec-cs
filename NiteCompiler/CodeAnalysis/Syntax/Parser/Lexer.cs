@@ -14,6 +14,11 @@ internal sealed partial class Lexer
 	private SlidingWindow _window;
 	private readonly Dictionary<string, string> _identifiers;
 
+	private SourceLocation CreateCurrentWindowLocation()
+	{
+		return new SourceLocation(SyntaxTree, _window.LexemeSpan);
+	}
+
 	public Lexer(SyntaxTree syntaxTree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
 	{
 		SyntaxTree = syntaxTree;
@@ -353,8 +358,10 @@ internal sealed partial class Lexer
 
 				if (_window.Width == 0)
 				{
+					char unexpected = _window.Current;
 					_window.Advance();
 					info.Kind = SyntaxKind.BadToken;
+					Diagnostics.ReportUnexpectedCharacter(CreateCurrentWindowLocation(), unexpected.ToString());
 				}
 
 				break;

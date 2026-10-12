@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.Diagnostics;
