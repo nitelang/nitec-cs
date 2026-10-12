@@ -50,7 +50,7 @@ internal partial class Parser
 				case SyntaxKind.OpenParen:
 					return ParseParenthesizedExpression();
 				case SyntaxKind.NumericLiteral:
-					SyntaxToken current = PeekAndAdvance();
+					SyntaxToken current = PeekThenAdvance();
 
 					return new LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression, _tree, current);
 				default:
@@ -158,8 +158,8 @@ internal partial class Parser
 			operatorTokenKind == SyntaxKind.RightShiftEquals)
 		{
 			// >> and >>=
-			SyntaxToken token1 = PeekAndAdvance();
-			SyntaxToken token2 = PeekAndAdvance();
+			SyntaxToken token1 = PeekThenAdvance();
+			SyntaxToken token2 = PeekThenAdvance();
 
 			return SyntaxToken.Merge(token1, token2, operatorTokenKind);
 		}
@@ -168,14 +168,14 @@ internal partial class Parser
 			operatorTokenKind == SyntaxKind.UnsignedRightShiftEquals)
 		{
 			// >>> and >>>=
-			SyntaxToken token1 = PeekAndAdvance();
-			_ = PeekAndAdvance();
-			SyntaxToken token3 = PeekAndAdvance();
+			SyntaxToken token1 = PeekThenAdvance();
+			_ = PeekThenAdvance();
+			SyntaxToken token3 = PeekThenAdvance();
 
 			return SyntaxToken.Merge(token1, token3, operatorTokenKind);
 		}
 
-		return PeekAndAdvance();
+		return PeekThenAdvance();
 	}
 
 	private ExpressionSyntax? TryExpandExpression(ExpressionSyntax leftOperand, Precedence precedence)
@@ -229,7 +229,7 @@ internal partial class Parser
 	{
 		if (IsPresentedAny(SyntaxFacts.TypeKeywords))
 		{
-			return new PredefinedTypeSyntax(_tree, PeekAndAdvance());
+			return new PredefinedTypeSyntax(_tree, PeekThenAdvance());
 		}
 
 		if (Current.Kind is SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier or { IsContextual: true })

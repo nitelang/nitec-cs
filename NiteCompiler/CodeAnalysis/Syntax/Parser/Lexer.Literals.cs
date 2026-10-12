@@ -104,10 +104,10 @@ internal partial class Lexer
 		Span<char> buf = stackalloc char[3];
 		int len = 0;
 
-		int max = 3;
+		const int max = 5;
 		while (len < max && char.IsAsciiLetterOrDigit(_window.Peek(len)))
 		{
-			buf[len++] = _window.Current;
+			buf[len++] = _window.PeekThenAdvance();
 		}
 
 		switch (len)

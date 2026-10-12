@@ -12,7 +12,7 @@ internal partial class Parser
 		switch (Current.Kind)
 		{
 			case SyntaxKind.OpenBrace:
-				SyntaxToken openBrace = PeekAndAdvance();
+				SyntaxToken openBrace = PeekThenAdvance();
 
 				ArrayBuilder<StatementSyntax> statements = ArrayBuilder<StatementSyntax>.GetInstance();
 				while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBrace))
@@ -23,17 +23,17 @@ internal partial class Parser
 
 				return new BlockStatementSyntax(_tree, attributes, openBrace, statements.ToSyntaxListAndFree(), closeBrace);
 			case SyntaxKind.LetKeyword:
-				SyntaxToken let = PeekAndAdvance();
+				SyntaxToken let = PeekThenAdvance();
 				PlainNameSyntax name = ParsePlainName();
 				TypeClauseSyntax? type = Current.Kind is SyntaxKind.Colon ? ParseTypeClause() : null;
 				EqualsClauseSyntax? init = Current.Kind is SyntaxKind.Equals ? ParseEqualsClause() : null;
 
 				return new LetStatementSyntax(_tree, attributes, let, name, type, init);
 			case SyntaxKind.Semicolon:
-				SyntaxToken semicolon = PeekAndAdvance();
+				SyntaxToken semicolon = PeekThenAdvance();
 				return new EmptyStatementSyntax(_tree, attributes, semicolon);
 			case SyntaxKind.ReturnKeyword:
-				SyntaxToken returnKeyword = PeekAndAdvance();
+				SyntaxToken returnKeyword = PeekThenAdvance();
 
 				ExpressionSyntax expression = ParseExpression();
 

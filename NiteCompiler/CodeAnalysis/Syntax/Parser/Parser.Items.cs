@@ -32,7 +32,7 @@ internal partial class Parser
 
 	private ModuleDeclarationSyntax ParseModuleDeclaration()
 	{
-		SyntaxToken module = PeekAndAdvance();
+		SyntaxToken module = PeekThenAdvance();
 		Debug.Assert(module.Kind == SyntaxKind.ModuleKeyword);
 
 		PlainNameSyntax name = ParsePlainName();
@@ -85,12 +85,12 @@ internal partial class Parser
 		// TODO: Add modifier tests
 		while (IsMemberModifier(Current.Kind) && (!Current.Kind.IsContextual || IsContextualStop(Peek(1).Kind)))
 		{
-			modifiers.Add(PeekAndAdvance());
+			modifiers.Add(PeekThenAdvance());
 		}
 
 		if (Current.Kind == SyntaxKind.TypeKeyword)
 		{
-			SyntaxToken type = PeekAndAdvance();
+			SyntaxToken type = PeekThenAdvance();
 			return ParseTypeDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), type);
 		}
 		else
@@ -160,7 +160,7 @@ internal partial class Parser
 		if (Current.Kind == SyntaxKind.Comma)
 		{
 			// TODO: report unexpected token
-			PeekAndAdvance(); // TODO: Merge with next token?
+			PeekThenAdvance(); // TODO: Merge with next token?
 		}
 
 		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseParen))
@@ -169,7 +169,7 @@ internal partial class Parser
 
 			if (Current.Kind == SyntaxKind.Comma)
 			{
-				parameters.Add(PeekAndAdvance());
+				parameters.Add(PeekThenAdvance());
 			}
 			else
 			{
@@ -202,7 +202,7 @@ internal partial class Parser
 		if (Current.Kind == SyntaxKind.Comma)
 		{
 			// TODO: report unexpected token
-			PeekAndAdvance(); // TODO: Merge with next token?
+			PeekThenAdvance(); // TODO: Merge with next token?
 		}
 
 		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseParen))
@@ -211,7 +211,7 @@ internal partial class Parser
 
 			if (Current.Kind == SyntaxKind.Comma)
 			{
-				parameters.Add(PeekAndAdvance());
+				parameters.Add(PeekThenAdvance());
 			}
 			else
 			{
@@ -231,7 +231,7 @@ internal partial class Parser
 		if (Current.Kind == SyntaxKind.Comma)
 		{
 			// TODO: report unexpected token
-			PeekAndAdvance(); // TODO: Merge with next token?
+			PeekThenAdvance(); // TODO: Merge with next token?
 		}
 
 		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBracket))
@@ -240,7 +240,7 @@ internal partial class Parser
 
 			if (Current.Kind == SyntaxKind.Comma)
 			{
-				parameters.Add(PeekAndAdvance());
+				parameters.Add(PeekThenAdvance());
 			}
 			else
 			{

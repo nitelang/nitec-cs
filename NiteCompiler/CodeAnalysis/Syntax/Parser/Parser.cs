@@ -92,7 +92,7 @@ internal sealed partial class Parser
 	}
 
 	[DebuggerStepThrough]
-	private SyntaxToken PeekAndAdvance()
+	private SyntaxToken PeekThenAdvance()
 	{
 		SyntaxToken current = Current;
 		_currentIndex++;
@@ -108,7 +108,7 @@ internal sealed partial class Parser
 	[DebuggerStepThrough]
 	private SyntaxToken? MatchContextualOrNot(params ReadOnlySpan<SyntaxKind> kinds)
 	{
-		return kinds.Contains(Current.Kind) ? PeekAndAdvance() : null;
+		return kinds.Contains(Current.Kind) ? PeekThenAdvance() : null;
 	}
 
 	[DebuggerStepThrough]
@@ -117,7 +117,7 @@ internal sealed partial class Parser
 		Debug.Assert(kind.IsToken && kind.IsValid()); // We only have tokens here, requesting node kind is obviously wrong.
 
 		if (Current.Kind == kind)
-			return PeekAndAdvance();
+			return PeekThenAdvance();
 
 		// _diagnostics.ReportExpectedToken(Current.Span.Contextualize(_syntaxTree), kind);
 		return Current.WithKind(kind, isMissing: true);

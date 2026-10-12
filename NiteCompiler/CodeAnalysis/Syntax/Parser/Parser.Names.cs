@@ -10,7 +10,7 @@ internal partial class Parser
 
 		while (Current.Kind is SyntaxKind.DoubleColon)
 		{
-			SyntaxToken doubleColon = PeekAndAdvance();
+			SyntaxToken doubleColon = PeekThenAdvance();
 			PlainNameSyntax right = ParsePlainName(options);
 
 			left = new PathNameSyntax(_tree, left, doubleColon, right);
@@ -21,7 +21,7 @@ internal partial class Parser
 
 	private PlainNameSyntax ParsePlainName(NameOptions options = NameOptions.None)
 	{
-		SyntaxToken current = PeekAndAdvance();
+		SyntaxToken current = PeekThenAdvance();
 		Debug.Assert(current.Kind is SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier || current.Kind.IsContextual);
 
 		if (current.Kind.IsContextual)
