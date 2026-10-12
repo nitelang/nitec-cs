@@ -1,3 +1,4 @@
+using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -27,6 +28,8 @@ public partial class SyntaxNode
 	public abstract void Accept(SyntaxVisitor visitor);
 	public abstract TResult Accept<TResult>(SyntaxVisitor<TResult> visitor);
 	public abstract TResult Accept<TResult, TArgument>(SyntaxVisitor<TResult, TArgument> visitor, TArgument argument);
+
+	public SourceLocation GetLocation() => new(this);
 
 	public abstract IEnumerable<SyntaxNode> GetChildNodes();
 	public abstract IEnumerable<SyntaxNode> GetChildNodesAndTokens();

@@ -44,6 +44,22 @@ public partial class NiteCompilation
 		return !hasError;*/
 	}
 
+	private bool _declarationDiagnosticsFrozen = false;
+	internal DiagnosticBag DeclarationDiagnostics
+	{
+		get
+		{
+			Debug.Assert(!_declarationDiagnosticsFrozen);
+			if (field == null)
+			{
+				var diagnostics = new DiagnosticBag();
+				Interlocked.CompareExchange(ref field, diagnostics, null);
+			}
+
+			return field;
+		}
+	}
+
 	private void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, Predicate<object>? symbolFilter, CancellationToken cancellationToken = default)
 	{
 		BindingDiagnosticBag builder = BindingDiagnosticBag.GetInstance();

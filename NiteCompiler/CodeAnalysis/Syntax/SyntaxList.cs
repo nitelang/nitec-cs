@@ -23,6 +23,12 @@ public readonly struct SyntaxList<T> : IEnumerable<T> where T : SyntaxNode
 
 	public T this[int index] => _nodes[index];
 
+	public static SyntaxList<T> CastUp<TDerived>(SyntaxList<TDerived> items)
+		where TDerived : T
+	{
+		return new SyntaxList<T>(items._nodes.ToArray<T>());
+	}
+
 	public static SyntaxList<T> Empty { get; } = new([]);
 
 	public ImmutableArray<T>.Enumerator GetEnumerator() => _nodes.GetEnumerator();
