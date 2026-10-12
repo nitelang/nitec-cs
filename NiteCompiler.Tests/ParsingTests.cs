@@ -12,7 +12,7 @@ public class ParsingTests
 	{
 		var tree = SyntaxTree.FromText(string.Empty, cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.Items).IsEmpty();
 	}
 
 	[Test]
@@ -28,7 +28,8 @@ public class ParsingTests
 	{
 		var tree = SyntaxTree.FromText("#! usr/bin/python3", cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.Items).IsEmpty();
+		await That(tree.Root.EndOfFileToken.LeadingTrivia[0].Kind).IsEqualTo(SyntaxKind.ShebangTrivia);
 	}
 
 	[Test]
@@ -51,7 +52,7 @@ public class ParsingTests
 
 		var tree = SyntaxTree.FromText(randomText, cancellationToken: cancellationToken);
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.FullSpan.Length).IsEqualTo(randomText.Length);
 	}
 
 	[Test]
@@ -125,7 +126,7 @@ public class ParsingTests
 	{
 		var tree = SyntaxTree.FromText("public main() {}");
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.Items[0]).IsTypeOf<FunctionDeclarationSyntax>();
 		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
 	}
 
@@ -134,7 +135,7 @@ public class ParsingTests
 	{
 		var tree = SyntaxTree.FromText("public main();");
 
-		await That(tree).IsNotNull();
+		await That(tree.Root.Items[0]).IsTypeOf<FunctionDeclarationSyntax>();
 		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
 	}
 
@@ -149,8 +150,26 @@ public class ParsingTests
 		                               }
 		                               """);
 
-		await That(tree).IsNotNull();
+		FunctionDeclarationSyntax? function;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+
+		BlockStatementSyntax? block = function?.BodyStatement as BlockStatementSyntax;
+		await That(block?.Statements[0]).IsTypeOf<LetStatementSyntax>();
 		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+	}
+
+	[Test]
+	public async Task ParseParams(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main(x: i32, y: Ananas) {
+		                               }
+		                               """);
+
+		FunctionDeclarationSyntax? function;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That(function!.ParameterList.Parameters[0]).IsTypeOf<NamedParameterSyntax>();
+		await That(function.ParameterList.Parameters[1]).IsTypeOf<NamedParameterSyntax>();
 	}
 
 	[Test]
@@ -176,5 +195,25 @@ public class ParsingTests
 				await VerifyChild(child);
 			}
 		}
+	}
+
+	[Test]
+	public async Task ChildWithinPosition(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("public main() {}", cancellationToken: cancellationToken);
+
+		const int namePosition = 7;// sizeof("public ")
+
+		await That(tree.Root.GetChildWithinPosition(namePosition)).IsTypeOf<FunctionDeclarationSyntax>();
+
+		var function = (FunctionDeclarationSyntax)tree.Root.GetChildWithinPosition(namePosition)!;
+		await That(function.GetChildWithinPosition(namePosition)).IsTypeOf<PlainNameSyntax>();
+
+		var name = (PlainNameSyntax)function.GetChildWithinPosition(namePosition)!;
+		var token = name.GetChildWithinPosition(namePosition);
+		await That(token).IsTypeOf<SyntaxToken>();
+		await That(((SyntaxToken)token!).Text).IsEqualTo("main");
+
+		await That(tree.Root.GetChildWithinPosition(1000)).IsNull();
 	}
 }

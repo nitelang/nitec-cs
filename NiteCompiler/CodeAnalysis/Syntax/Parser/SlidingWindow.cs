@@ -68,6 +68,14 @@ public struct SlidingWindow
 		return new string(_window, _lexemeStart, Width);
 	}
 
+	/// <summary>
+	/// Current lexeme as a span over the internal buffer.
+	/// </summary>
+	/// <remarks>
+	/// Valid until the window is refocused.
+	/// </remarks>
+	public ReadOnlySpan<char> LexemeChars => new(_window, _lexemeStart, Width);
+
 	public bool AdvanceIfPresented(char required)
 	{
 		if (Current != required)

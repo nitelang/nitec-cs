@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
@@ -56,36 +55,5 @@ public sealed class SyntaxTree
 	public IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
 	{
 		return Diagnostics;
-	}
-
-	internal SyntaxNode LookupForParent(SyntaxNode node)
-	{
-		Debug.Assert(node.SyntaxTree == this);
-		Debug.Assert(node != Root);
-
-		SyntaxNode? parent = Lookup(Root);
-		Debug.Assert(parent != null);
-		return parent;
-
-		SyntaxNode? Lookup(SyntaxNode root)
-		{
-			foreach (var child in root.GetChildNodesAndTokens())
-			{
-				if (child == node)
-				{
-					return root;
-				}
-
-				if (child.Kind.IsNode)
-				{
-					SyntaxNode? lookup = Lookup(child);
-					if (lookup is null) continue;
-
-					return lookup;
-				}
-			}
-
-			return null;
-		}
 	}
 }

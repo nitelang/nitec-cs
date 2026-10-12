@@ -193,6 +193,8 @@ public class Generator : IIncrementalGenerator
 			var allMembers = GetAllMembers(kind).ToArray();
 			var ownMembers = kind.Members;
 			var baseMembers = allMembers.Take(allMembers.Length - ownMembers.Length).ToArray();
+			var ownChildren = ownMembers.Where(m =>
+				m.IsArray ? nodeTypeNames.Contains(m.ElementType) : nodeTypeNames.Contains(m.Type)).ToArray();
 
 			foreach (var member in ownMembers)
 			{
@@ -255,6 +257,27 @@ public class Generator : IIncrementalGenerator
 				if (!kind.Abstract && kind.RelatedKinds.Length > 1)
 				{
 					writer.WriteLine("Kind = kind;");
+				}
+
+				// Assign this node as the parent of every child it owns. Base members are
+				// already handled by the base constructor, so only own members are visited.
+				foreach (var member in ownChildren)
+				{
+					if (member.IsArray)
+					{
+						writer.WriteLine($"for (int i = 0; i < {member.Name}.Count; i++)");
+						writer.EnterScope("{");
+						writer.WriteLine($"{member.Name}[i]?.Parent = this;");
+						writer.ExitScope("}");
+					}
+					else if (member.NullSafety == NullSafety.Nullable)
+					{
+						writer.WriteLine($"{member.Name}?.Parent = this;");
+					}
+					else
+					{
+						writer.WriteLine($"{member.Name}.Parent = this;");
+					}
 				}
 			}
 			writer.ExitScope("}");
@@ -355,6 +378,30 @@ public class Generator : IIncrementalGenerator
 					}
 				}
 				writer.WriteLine("yield break;");
+				writer.ExitScope("}");
+
+				writer.WriteLine("public override SyntaxNode? GetChildWithinPosition(int position)");
+				writer.EnterScope("{");
+				foreach (var member in allChildren)
+				{
+					if (member.IsArray)
+					{
+						writer.WriteLine($"for (int i = 0; i < {member.Name}.Count; i++)");
+						writer.EnterScope("{");
+						writer.WriteLine($"SyntaxNode child = {member.Name}[i];");
+						writer.WriteLine("if (child is not null && child.FullSpan.Contains(position)) return child;");
+						writer.ExitScope("}");
+					}
+					else if (member.NullSafety == NullSafety.Nullable)
+					{
+						writer.WriteLine($"if ({member.Name} is not null && {member.Name}.FullSpan.Contains(position)) return {member.Name};");
+					}
+					else
+					{
+						writer.WriteLine($"if ({member.Name}.FullSpan.Contains(position)) return {member.Name};");
+					}
+				}
+				writer.WriteLine("return null;");
 				writer.ExitScope("}");
 
 				string FirstChildOf(MemberKind member) => member.IsArray

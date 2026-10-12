@@ -25,7 +25,9 @@ public readonly struct SyntaxList<T> : IEnumerable<T> where T : SyntaxNode
 
 	public static SyntaxList<T> Empty { get; } = new([]);
 
-	public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_nodes).GetEnumerator();
+	public ImmutableArray<T>.Enumerator GetEnumerator() => _nodes.GetEnumerator();
 
-	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+	IEnumerator<T> IEnumerable<T>.GetEnumerator() => ((IEnumerable<T>)_nodes).GetEnumerator();
+
+	IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)_nodes).GetEnumerator();
 }

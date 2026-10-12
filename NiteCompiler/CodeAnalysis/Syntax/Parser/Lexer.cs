@@ -12,6 +12,7 @@ internal sealed partial class Lexer
 	public NiteParseOptions Options { get; }
 	public DiagnosticBag Diagnostics { get; }
 	private SlidingWindow _window;
+	private readonly Dictionary<string, string> _identifiers;
 
 	public Lexer(SyntaxTree syntaxTree, SourceText source, NiteParseOptions options, DiagnosticBag diagnostics)
 	{
@@ -19,6 +20,32 @@ internal sealed partial class Lexer
 		Options = options;
 		Diagnostics = diagnostics;
 		_window = new SlidingWindow(source);
+		_identifiers = new Dictionary<string, string>(StringComparer.Ordinal);
+	}
+
+	private string InternIdentifier(ReadOnlySpan<char> text)
+	{
+		var lookup = _identifiers.GetAlternateLookup<ReadOnlySpan<char>>();
+
+		if (lookup.TryGetValue(text, out string? interned))
+		{
+			return interned;
+		}
+
+		string created = text.ToString();
+		_identifiers[created] = created;
+		return created;
+	}
+
+	private string InternIdentifier(string text)
+	{
+		if (_identifiers.TryGetValue(text, out string? interned))
+		{
+			return interned;
+		}
+
+		_identifiers[text] = text;
+		return text;
 	}
 
 	private ResetPoint GetResetPoint()

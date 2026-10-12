@@ -23,40 +23,10 @@ public sealed class SyntaxToken : SyntaxNode
 	/// </summary>
 	public ImmutableArray<SyntaxTrivia> TrailingTrivia { get; }
 
-	public override TextSpan FullSpan
-	{
-		get
-		{
-			if (field == default)
-			{
-				TextSpan fullSpan = CalculateFullSpan();
-				Debug.Assert(fullSpan.Contains(Span)); // Full span should always be able to contain the token span
-
-				Interlocked.CompareExchange(ref field, fullSpan, default);
-			}
-
-			return field;
-
-			TextSpan CalculateFullSpan()
-			{
-				int start = Span.Start;
-
-				if (!LeadingTrivia.IsDefaultOrEmpty)
-				{
-					start = LeadingTrivia.First().Span.Start;
-				}
-
-				int end = Span.End;
-
-				if (!TrailingTrivia.IsDefaultOrEmpty)
-				{
-					end = TrailingTrivia.Last().Span.End;
-				}
-
-				return TextSpan.FromBounds(start, end);
-			}
-		}
-	}
+	/// <summary>
+	/// Span of all text in <see langword="this"/> token, including its trivia.
+	/// </summary>
+	public override TextSpan FullSpan { get; }
 
 	public SyntaxToken(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,
@@ -70,6 +40,28 @@ public sealed class SyntaxToken : SyntaxNode
 		LeadingTrivia = leadingTrivia;
 		TrailingTrivia = trailingTrivia;
 		IsMissing = isMissing;
+
+		FullSpan = CalculateFullSpan();
+		Debug.Assert(FullSpan.Contains(Span));
+	}
+
+	private TextSpan CalculateFullSpan()
+	{
+		int start = Span.Start;
+
+		if (!LeadingTrivia.IsDefaultOrEmpty)
+		{
+			start = LeadingTrivia.First().Span.Start;
+		}
+
+		int end = Span.End;
+
+		if (!TrailingTrivia.IsDefaultOrEmpty)
+		{
+			end = TrailingTrivia.Last().Span.End;
+		}
+
+		return TextSpan.FromBounds(start, end);
 	}
 
 	public bool IsBefore(SyntaxNode afterNode)
@@ -96,12 +88,9 @@ public sealed class SyntaxToken : SyntaxNode
 	public override IEnumerable<SyntaxNode> GetChildNodesAndTokens() => [];
 	public override IEnumerable<SyntaxToken> GetChildTokens() => [];
 
-	public string GetText()
-	{
-		return SyntaxTree.Text.GetText(Span);
-	}
+	public string Text => SyntaxTree.Text.GetText(Span);
 
-	public ReadOnlySpan<char> GetTextAsSpan()
+	public ReadOnlySpan<char> GetText()
 	{
 		return SyntaxTree.Text.AsSpan(Span);
 	}

@@ -11,21 +11,16 @@ internal partial class Lexer
 		char c = _window.Current;
 		if (char.IsAsciiLetter(c) || c is '_' || IsIdentifierCharacterSlow(c))
 		{
-			// TODO: Pooling
-			StringBuilder sb = new();
-			sb.Append(c);
-
 			_window.Advance();
 			c = _window.Current;
 
 			while (char.IsAsciiLetterOrDigit(c) || c is '_' || IsIdentifierCharacterSlow(c))
 			{
-				sb.Append(c);
 				_window.Advance();
 				c = _window.Current;
 			}
 
-			info.Identifier = sb.ToString();
+			info.Identifier = InternIdentifier(_window.LexemeChars);
 			info.Kind = SyntaxKind.Identifier;
 		}
 	}
@@ -153,6 +148,6 @@ internal partial class Lexer
 			}
 		}
 
-		info.Identifier = sb.ToString();
+		info.Identifier = InternIdentifier(sb.ToString());
 	}
 }

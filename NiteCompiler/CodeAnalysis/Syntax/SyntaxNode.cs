@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using NiteCompiler.Text;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -23,21 +22,7 @@ public partial class SyntaxNode
 	/// <summary>
 	/// The syntax node that holds <see langword="this"/> node as one of its children.
 	/// </summary>
-	public virtual SyntaxNode? Parent
-	{
-		get
-		{
-			if (field == null)
-			{
-				SyntaxNode? parent = SyntaxTree.LookupForParent(this);
-				Debug.Assert(parent != null);
-
-				Interlocked.CompareExchange(ref field, parent, null);
-			}
-
-			return field;
-		}
-	}
+	public virtual SyntaxNode? Parent { get; internal set; }
 
 	public abstract void Accept(SyntaxVisitor visitor);
 	public abstract TResult Accept<TResult>(SyntaxVisitor<TResult> visitor);
@@ -46,7 +31,11 @@ public partial class SyntaxNode
 	public abstract IEnumerable<SyntaxNode> GetChildNodes();
 	public abstract IEnumerable<SyntaxNode> GetChildNodesAndTokens();
 	public abstract IEnumerable<SyntaxToken> GetChildTokens();
+	/// <summary>
+	/// Returns the direct child whose <see cref="FullSpan"/> contains <paramref name="position"/>,
+	/// or <see langword="null"/> when no child does.
+	/// </summary>
+	public virtual SyntaxNode? GetChildWithinPosition(int position) => null;
 	// TODO[later]:
-	// public abstract SyntaxNode? GetChildWithinPosition(int position);
 	// public abstract bool Contains(SyntaxNode);
 }
