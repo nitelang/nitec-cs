@@ -1,6 +1,5 @@
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Diagnostics;
-using NiteCompiler.Diagnostics.Rendering;
 
 namespace NiteCompiler.Cli;
 

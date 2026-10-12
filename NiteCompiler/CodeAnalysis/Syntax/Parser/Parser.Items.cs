@@ -126,7 +126,7 @@ internal partial class Parser
 		return new TypeDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, type, name, openBrace, members.ToSyntaxListAndFree(), closeBrace);
 	}
 
-	private MemberSyntax ParseFunctionDeclaration(SyntaxToken? accessibility, SyntaxList<SyntaxToken> modifiers, PlainNameSyntax name)
+	private FunctionDeclarationSyntax ParseFunctionDeclaration(SyntaxToken? accessibility, SyntaxList<SyntaxToken> modifiers, PlainNameSyntax name)
 	{
 		ParameterListSyntax parameters = ParseParameterList();
 

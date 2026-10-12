@@ -1,9 +1,12 @@
 namespace NiteCompiler.Utilities;
 
-public static class Filter
+public static class FilterExtensions
 {
-	public static bool Passes<T>(Predicate<T>? filter, T value)
+	extension<T>(Predicate<T>? filter)
 	{
-		return filter == null || filter(value);
+		public bool Passes(T value)
+		{
+			return filter == null || filter(value);
+		}
 	}
 }

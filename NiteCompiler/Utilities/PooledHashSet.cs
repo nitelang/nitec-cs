@@ -23,7 +23,7 @@ internal sealed class PooledHashSet<T> : HashSet<T>
 
 	public void Free()
 	{
-		this.Clear();
+		Clear();
 		_pool?.Free(this);
 	}
 
