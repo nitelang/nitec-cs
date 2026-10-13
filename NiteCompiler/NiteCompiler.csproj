@@ -24,4 +24,8 @@
         <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.11" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="NiteCompiler.Tests" />
+    </ItemGroup>
+
 </Project>

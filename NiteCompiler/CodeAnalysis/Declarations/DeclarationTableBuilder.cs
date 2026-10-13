@@ -4,6 +4,8 @@ namespace NiteCompiler.CodeAnalysis.Declarations;
 
 internal sealed class DeclarationTableBuilder
 {
+	// TODO: not wired up yet — SyntaxAndDeclarationManager constructs DeclarationTable directly from the trees.
+	// port Roslyn's AddRootDeclaration/RemoveRootDeclaration + RealizeAdds/RealizeRemoves (older/latest split and cache reuse) when incremental edits land.
 	private static readonly ObjectPool<DeclarationTableBuilder> Pool = new(static () => new DeclarationTableBuilder());
 
 	private DeclarationTable _table;

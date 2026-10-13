@@ -18,13 +18,8 @@ public partial class NiteCompilation
 			throw new ArgumentNullException(nameof(trees));
 		}
 
-		if (!trees.Any())
-		{
-			return this;
-		}
-
+		List<SyntaxTree> treeList = [];
 		PooledHashSet<SyntaxTree> externalSyntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
-		SyntaxAndDeclarationManager syntaxAndDeclarations = _syntaxAndDeclarations;
 		int i = 0;
 		try
 		{
@@ -40,6 +35,7 @@ public partial class NiteCompilation
 					throw new ArgumentException("Syntax tree already present.", $"{nameof(trees)}[{i}]");
 				}
 
+				treeList.Add(tree);
 				i++;
 			}
 		}
@@ -48,7 +44,12 @@ public partial class NiteCompilation
 			externalSyntaxTrees.Free();
 		}
 
+		if (treeList.Count == 0)
+		{
+			return this;
+		}
 
-		return Update(syntaxAndDeclarations);
+		// TODO: RemoveSyntaxTrees/ReplaceSyntaxTree and reuse of the existing declaration state.
+		return Update(_syntaxAndDeclarations.AddSyntaxTrees(treeList));
 	}
 }
