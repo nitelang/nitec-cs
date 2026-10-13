@@ -62,6 +62,7 @@ internal partial class Lexer
 					_window.Advance();
 					break;
 				case '`':
+					_window.Advance();
 					done = true;
 					break;
 				case '\n':

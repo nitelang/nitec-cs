@@ -1,5 +1,6 @@
 using System.Reflection;
 using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.Compilation;
 using Serilog;
 
 namespace NiteCompiler.LanguageServer;
@@ -15,14 +16,16 @@ public static class Server
 
 		Log.Information("Startup Nite Language Server");
 		Log.Information("Language Server Version: {Version}", typeof(Server).Assembly.InformationalVersion);
-		Log.Information("Nite Compiler Version: {Version}", typeof(SyntaxNode).Assembly.InformationalVersion); // TODO: replace with compiler class
+		Log.Information("Nite Compiler Version: {Version}", typeof(NiteCompilation).Assembly.InformationalVersion);
 
-		while (true)
+		try
 		{
-
+			SpinWait.SpinUntil(() => false);
 		}
-
-		Log.Information("Terminate Nite Language Server...");
+		finally
+		{
+			Log.Information("Terminate Nite Language Server...");
+		}
 	}
 
 	extension(Assembly assembly)

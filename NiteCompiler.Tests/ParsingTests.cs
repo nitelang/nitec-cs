@@ -1,5 +1,4 @@
 using NiteCompiler.CodeAnalysis.Syntax;
-using NiteCompiler.Diagnostics;
 using static TUnit.Assertions.Assert;
 
 namespace NiteCompiler.Tests;
@@ -30,6 +29,7 @@ public class ParsingTests
 
 		await That(tree.Root.Items).IsEmpty();
 		await That(tree.Root.EndOfFileToken.LeadingTrivia[0].Kind).IsEqualTo(SyntaxKind.ShebangTrivia);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -75,6 +75,7 @@ public class ParsingTests
 		FunctionDeclarationSyntax? function;
 		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
 		await That((function?.BodyStatement as BlockStatementSyntax)?.Statements[0]).IsTypeOf<ExpressionStatementSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -83,6 +84,7 @@ public class ParsingTests
 		var tree = SyntaxTree.FromText("public type Vec3 {}", cancellationToken: cancellationToken);
 
 		await That(tree.Root.Items[0]).IsTypeOf<TypeDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -97,6 +99,7 @@ public class ParsingTests
 		                               """, cancellationToken: cancellationToken);
 
 		await That(tree.Root.Items[0]).IsNotNull().And.IsTypeOf<TypeDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -106,6 +109,7 @@ public class ParsingTests
 
 		await That(tree.Root.Items).Count().IsEqualTo(1);
 		await That(tree.Root.Items[0]).IsTypeOf<ModuleDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -119,6 +123,7 @@ public class ParsingTests
 
 		await That(tree.Root.Items).Count().IsEqualTo(1);
 		await That(tree.Root.Items[0]).IsTypeOf<ModuleDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -127,7 +132,7 @@ public class ParsingTests
 		var tree = SyntaxTree.FromText("public main() {}");
 
 		await That(tree.Root.Items[0]).IsTypeOf<FunctionDeclarationSyntax>();
-		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -136,7 +141,7 @@ public class ParsingTests
 		var tree = SyntaxTree.FromText("public main();");
 
 		await That(tree.Root.Items[0]).IsTypeOf<FunctionDeclarationSyntax>();
-		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -155,7 +160,7 @@ public class ParsingTests
 
 		BlockStatementSyntax? block = function?.BodyStatement as BlockStatementSyntax;
 		await That(block?.Statements[0]).IsTypeOf<LetStatementSyntax>();
-		await That(tree.GetDiagnostics(cancellationToken)).All(t => t.Descriptor.Severity < DiagnosticSeverity.Warning);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -170,6 +175,7 @@ public class ParsingTests
 		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
 		await That(function!.ParameterList.Parameters[0]).IsTypeOf<NamedParameterSyntax>();
 		await That(function.ParameterList.Parameters[1]).IsTypeOf<NamedParameterSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -195,6 +201,8 @@ public class ParsingTests
 				await VerifyChild(child);
 			}
 		}
+
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
@@ -215,5 +223,6 @@ public class ParsingTests
 		await That(((SyntaxToken)token!).Text).IsEqualTo("main");
 
 		await That(tree.Root.GetChildWithinPosition(1000)).IsNull();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 }
