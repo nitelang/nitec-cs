@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using NiteCompiler.CodeAnalysis.Declarations;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Utilities;
 
@@ -32,15 +33,14 @@ internal class SyntaxAndDeclarationManager
 	{
 		ArrayBuilder<SyntaxTree> treesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
 		PooledDictionary<SyntaxTree, int> ordinalMapBuilder = PooledDictionary<SyntaxTree, int>.GetInstance();
-		//DeclarationTable declTableBuilder = DeclarationTable.Empty.ToBuilder();
-
+		DeclarationTableBuilder declTableBuilder = DeclarationTable.Empty.ToBuilder();
 
 		foreach (SyntaxTree syntaxTree in syntaxTrees)
 		{
 			AppendAllSyntaxTrees(treesBuilder, syntaxTree, ordinalMapBuilder);
 		}
 
-		return new State(syntaxTrees, ordinalMapBuilder.ToImmutableDictionaryAndFree(), null!);
+		return new State(syntaxTrees, ordinalMapBuilder.ToImmutableDictionaryAndFree(), declTableBuilder.ToDeclarationTableAndFree());
 	}
 
 	private static void AppendAllSyntaxTrees(ArrayBuilder<SyntaxTree> treesBuilder, SyntaxTree tree, PooledDictionary<SyntaxTree, int> ordinalMapBuilder)
@@ -53,18 +53,16 @@ internal class SyntaxAndDeclarationManager
 	{
 		public readonly ImmutableArray<SyntaxTree> SyntaxTrees;
 		public readonly ImmutableDictionary<SyntaxTree, int> OrdinalMap;
-		public readonly object DeclarationTable;
+		public readonly DeclarationTable DeclarationTable;
 
 		public State(ImmutableArray<SyntaxTree> syntaxTrees, ImmutableDictionary<SyntaxTree, int> ordinalMap,
-			object declarationTable)
+			DeclarationTable declarationTable)
 		{
 			Debug.Assert(syntaxTrees.All(tree => syntaxTrees[ordinalMap[tree]] == tree));
 
 			SyntaxTrees = syntaxTrees;
 			OrdinalMap = ordinalMap;
 			DeclarationTable = declarationTable;
-
-			throw new NotImplementedException();
 		}
 	}
 }

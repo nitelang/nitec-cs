@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using NiteCompiler.CodeAnalysis.Syntax;
-using NiteCompiler.Compilation;
 
 namespace NiteCompiler.CodeAnalysis.Declarations;
 
@@ -10,25 +8,28 @@ internal sealed class DeclarationTable
 	public static readonly DeclarationTable Empty = new(ImmutableArray<SyntaxTree>.Empty);
 
 	public ImmutableArray<SyntaxTree> Trees { get; }
-	//private MergedModuleDeclaration? _lateinitRoot;
+	private MergedModuleDeclaration? _lateinitRoot;
 
 	public DeclarationTable(ImmutableArray<SyntaxTree> trees)
 	{
 		Trees = trees;
 	}
 
-	/*
-	public MergedModuleDeclaration GetMergedRoot(NiteCompilation compilation)
+	public DeclarationTableBuilder ToBuilder()
 	{
-		Debug.Assert(compilation.Declarations == this);
+		return DeclarationTableBuilder.GetInstance(this);
+	}
+
+	public MergedModuleDeclaration GetMergedRoot()
+	{
 		if (_lateinitRoot == null)
 		{
-			Interlocked.CompareExchange(ref _lateinitRoot, CalculateMergedRoot(compilation), null);
+			Interlocked.CompareExchange(ref _lateinitRoot, CalculateMergedRoot(), null);
 		}
 		return _lateinitRoot;
 	}
 
-	private MergedModuleDeclaration CalculateMergedRoot(NiteCompilation compilation)
+	private MergedModuleDeclaration CalculateMergedRoot()
 	{
 		var builder = ImmutableArray.CreateBuilder<SingleModuleDeclaration>();
 
@@ -38,5 +39,5 @@ internal sealed class DeclarationTable
 		}
 
 		return MergedModuleDeclaration.Create(builder.ToImmutable());
-	}*/
+	}
 }
