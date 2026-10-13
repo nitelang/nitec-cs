@@ -1,31 +1,33 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using NiteCompiler.CodeAnalysis.Syntax;
-using NiteCompiler.Compilation;
-using Serilog;
+using StreamJsonRpc;
 
 namespace NiteCompiler.LanguageServer;
 
 public static class Server
 {
-	private static void Main(string[] args)
+	private static int Main() => Run(Console.OpenStandardInput(), Console.OpenStandardOutput());
+
+	[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Uses the JSON source generator.")]
+	[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Uses the JSON source generator.")]
+	private static int Run(Stream input, Stream output)
 	{
-		Log.Logger = new LoggerConfiguration()
-			.WriteTo.Console()
-			.MinimumLevel.Debug()
-			.CreateLogger();
-
-		Log.Information("Startup Nite Language Server");
-		Log.Information("Language Server Version: {Version}", typeof(Server).Assembly.InformationalVersion);
-		Log.Information("Nite Compiler Version: {Version}", typeof(NiteCompilation).Assembly.InformationalVersion);
-
-		try
+		NiteLanguageServer server = new();
+		using JsonRpc rpc = new(new HeaderDelimitedMessageHandler(output, input, new SystemTextJsonFormatter
 		{
-			SpinWait.SpinUntil(() => false);
-		}
-		finally
-		{
-			Log.Information("Terminate Nite Language Server...");
-		}
+			JsonSerializerOptions = { TypeInfoResolver = NiteJsonSerializerContext.Default },
+		}));
+
+		// LSP sends method arguments as one object (e.g. InitializeParams); tell StreamJsonRpc to
+		// deserialize that object into a single complex parameter instead of matching named args.
+		rpc.AddLocalRpcTarget(RpcTargetMetadata.FromShape<INiteLanguageServer>(), server,
+			new JsonRpcTargetOptions { UseSingleObjectParameterDeserialization = true });
+
+		rpc.StartListening();
+
+		Task.WaitAny(server.Exited, rpc.Completion);
+
+		return server.ShutdownRequested ? 0 : -1;
 	}
 
 	extension(Assembly assembly)
