@@ -1,13 +1,14 @@
-using NiteCompiler.CodeAnalysis.Syntax;
-using static TUnit.Assertions.Assert;
+global using static TUnit.Assertions.Assert;
 
+using NiteCompiler.CodeAnalysis.Syntax;
+
+[assembly: Timeout(10_000)]
 namespace NiteCompiler.Tests;
 
-[Timeout(10_000)]
 public class ParsingTests
 {
 	[Test]
-	public async Task ZeroLengthFileTest(CancellationToken cancellationToken)
+	public async Task ParseEmptyFile(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText(string.Empty, cancellationToken: cancellationToken);
 
@@ -15,7 +16,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task FileFilledWithSpacesTest(CancellationToken cancellationToken)
+	public async Task ParseOnlySpaces(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText(" \n\r\n\t  \t\v", cancellationToken: cancellationToken);
 
@@ -23,7 +24,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ShebangTest(CancellationToken cancellationToken)
+	public async Task ParseShebang(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("#! usr/bin/python3", cancellationToken: cancellationToken);
 
@@ -33,7 +34,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task RandomCharactersTest(CancellationToken cancellationToken)
+	public async Task ParseRandomCharacters(CancellationToken cancellationToken)
 	{
 		Random rand = Random.Shared;
 
@@ -64,7 +65,7 @@ public class ParsingTests
 	[Arguments(">>")]
 	[Arguments("<<")]
 	[Arguments(">>>")]
-	public async Task ExpressionsTest(string op, CancellationToken cancellationToken)
+	public async Task ParseBinaryExpression(string op, CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText($$"""
 		                                public main() {
@@ -79,7 +80,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseEmptyTypeTest(CancellationToken cancellationToken)
+	public async Task ParseEmptyType(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("public type Vec3 {}", cancellationToken: cancellationToken);
 
@@ -88,7 +89,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseTypeTest(CancellationToken cancellationToken)
+	public async Task ParseType(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
 		                               public type Vec3 {
@@ -103,7 +104,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseEmptyModuleTest(CancellationToken cancellationToken)
+	public async Task ParseEmptyModule(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("module test_name123;");
 
@@ -113,7 +114,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseModuleTest(CancellationToken cancellationToken)
+	public async Task ParseModule(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
 		                               module test_name123;
@@ -127,7 +128,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseEmptyFunctionTest(CancellationToken cancellationToken)
+	public async Task ParseEmptyFunction(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("public main() {}");
 
@@ -136,7 +137,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseEmptyFunctionSemicolonTest(CancellationToken cancellationToken)
+	public async Task ParseEmptyFunctionSemicolon(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("public main();");
 
@@ -145,7 +146,7 @@ public class ParsingTests
 	}
 
 	[Test]
-	public async Task ParseLetTest(CancellationToken cancellationToken)
+	public async Task ParseLet(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
 		                               public main() {
