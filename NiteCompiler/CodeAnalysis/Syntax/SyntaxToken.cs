@@ -7,10 +7,11 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 
 // SyntaxToken doesn't have auto-generated brother-of-file, it's simpler to work out this by hand.
 
-public sealed class SyntaxToken : SyntaxNode
+public class SyntaxToken : SyntaxNode
 {
-	public override SyntaxKind Kind { get; }
-	public override TextSpan Span { get; }
+	public sealed override SyntaxKind Kind { get; }
+	public sealed override TextSpan Span { get; }
+	public sealed override TextSpan FullSpan { get; }
 	public bool IsMissing { get; }
 
 	/// <summary>
@@ -24,9 +25,9 @@ public sealed class SyntaxToken : SyntaxNode
 	public ImmutableArray<SyntaxTrivia> TrailingTrivia { get; }
 
 	/// <summary>
-	/// Span of all text in <see langword="this"/> token, including its trivia.
+	/// Returns identifier value, if token is an identifier; otherwise returns <see langword="null"/>.
 	/// </summary>
-	public override TextSpan FullSpan { get; }
+	public virtual string? IdentifierValue => null;
 
 	public SyntaxToken(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,
@@ -101,12 +102,12 @@ public sealed class SyntaxToken : SyntaxNode
 	/// <param name="kind">Kind of new token.</param>
 	/// <param name="isMissing">Is token missing.</param>
 	/// <returns>New instance of <see cref="SyntaxToken"/>, with different syntax <paramref name="kind"/>.</returns>
-	public SyntaxToken WithKind(SyntaxKind kind, bool? isMissing = false)
+	public virtual SyntaxToken WithKind(SyntaxKind kind, bool? isMissing = false)
 	{
 		return new SyntaxToken(kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree, isMissing ?? IsMissing);
 	}
 
-	public SyntaxToken WithMissing(bool isMissing = true)
+	public virtual SyntaxToken WithMissing(bool isMissing = true)
 	{
 		return new SyntaxToken(Kind, Span, LeadingTrivia, TrailingTrivia, SyntaxTree, isMissing);
 	}

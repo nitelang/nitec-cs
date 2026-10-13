@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Text;
@@ -85,7 +87,21 @@ internal sealed partial class Lexer
 		ReadTrivia(false, trivia);
 		var trailing = trivia.ToImmutableAndFree();
 
-		return new SyntaxToken(info.Kind, span, leading, trailing, SyntaxTree);
+		return ProduceToken(in info, span, leading, trailing, SyntaxTree);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private SyntaxToken ProduceToken(in TokenInfo info, TextSpan span, ImmutableArray<SyntaxTrivia> leading, ImmutableArray<SyntaxTrivia> trailing, SyntaxTree syntaxTree)
+	{
+		switch (info.Kind)
+		{
+			case SyntaxKind.Identifier:
+			case SyntaxKind.EscapedIdentifier:
+				Debug.Assert(info.Identifier != null);
+				return new SyntaxTokenIdentifier(info.Kind, span, leading, trailing, syntaxTree, info.Identifier);
+			default:
+				return new SyntaxToken(info.Kind, span, leading, trailing, syntaxTree);
+		}
 	}
 
 	private void ReadToken(ref TokenInfo info)

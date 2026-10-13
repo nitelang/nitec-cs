@@ -22,14 +22,36 @@ internal sealed class DeclarationTreeBuilder : SyntaxVisitor<SingleItemDeclarati
 
 	public override SingleItemDeclaration VisitModuleDeclaration(ModuleDeclarationSyntax node)
 	{
+		// TODO: Implement name unwrapping
+		// module x::y::z; should produce x{y{z}} declaration, not single item!
+
 		var members = VisitModuleMembers(node, node.Members);
 
+		NameSyntax name = node.Name;
+		SyntaxNode currentNode = node;
+
+		while (name is PathNameSyntax path)
+		{
+			SingleModuleDeclaration module = new(
+				name: name.UnqualifiedName.GetIdentifierValue(),
+				syntax: currentNode,
+				nameLocation: path.Right.GetLocation(),
+				members: members,
+				diagnostics: []
+			);
+
+			members = [module];
+
+			currentNode = name = path.Left;
+		}
+
 		return new SingleModuleDeclaration(
-			GetName(node.Name),
-			node,
-			node.Name.GetLocation(),
-			members,
-			diagnostics: []);
+			name: name.UnqualifiedName.GetIdentifierValue(), // ain't sure about UnqualifiedName.GetIdentifierValue() is what I want, will check later
+			syntax: currentNode,
+			nameLocation: name.GetLocation(),
+			members: members,
+			diagnostics: []
+		);
 	}
 
 	public override SingleItemDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node)
@@ -39,7 +61,7 @@ internal sealed class DeclarationTreeBuilder : SyntaxVisitor<SingleItemDeclarati
 		var members = VisitTypeMembers(node, node.Members);
 
 		return new SingleTypeDeclaration(
-			GetName(node.Name),
+			node.Name.GetIdentifierValue(),
 			lifetimeArity: 0,
 			arity: 0,
 			GetAccessibility(node),
@@ -94,21 +116,5 @@ internal sealed class DeclarationTreeBuilder : SyntaxVisitor<SingleItemDeclarati
 			SyntaxKind.PublicKeyword => DeclarationAccessibility.Public,
 			_ => DeclarationAccessibility.None
 		};
-	}
-
-	private static string GetName(NameSyntax name)
-	{
-		return name switch
-		{
-			PlainNameSyntax plain => GetName(plain),
-			PathNameSyntax path => GetName(path.Right),
-			_ => string.Empty
-		};
-	}
-
-	[ToRemoval("PlainNameSyntax should provide identifier value via getter or field")]
-	private static string GetName(PlainNameSyntax name)
-	{
-		return name is IdentifierNameSyntax identifier ? identifier.Identifier.Text : string.Empty;
 	}
 }
