@@ -29,6 +29,16 @@ public class SyntaxToken : SyntaxNode
 	/// </summary>
 	public virtual string? IdentifierValue => null;
 
+	/// <summary>
+	/// Returns token literal value, if token is a literal; otherwise returns <see langword="null"/>.
+	/// </summary>
+	public virtual object? LiteralValue => null;
+
+	/// <summary>
+	/// Explicit type token declared with.
+	/// </summary>
+	public virtual SpecialType ExplicitType => SpecialType.None;
+
 	public SyntaxToken(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,
 		SyntaxTree syntaxTree, bool isMissing = false) : base(syntaxTree)

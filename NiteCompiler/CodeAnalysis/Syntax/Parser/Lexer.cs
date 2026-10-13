@@ -69,6 +69,14 @@ internal sealed partial class Lexer
 	{
 		public SyntaxKind Kind;
 		public string? Identifier; // Pure identifier value
+
+		public SpecialType ValueType;
+		public SpecialType ExplicitType;
+		public UInt128 Magnitude;
+
+		public Half F16Value;
+		public float F32Value;
+		public double F64Value;
 	}
 
 	public SyntaxToken Lex()
@@ -99,9 +107,28 @@ internal sealed partial class Lexer
 			case SyntaxKind.EscapedIdentifier:
 				Debug.Assert(info.Identifier != null);
 				return new SyntaxTokenIdentifier(info.Kind, span, leading, trailing, syntaxTree, info.Identifier);
+			case SyntaxKind.NumericLiteral:
+				return ProduceNumericToken(in info, span, leading, trailing, syntaxTree);
 			default:
 				return new SyntaxToken(info.Kind, span, leading, trailing, syntaxTree);
 		}
+	}
+
+	private static SyntaxToken ProduceNumericToken(in TokenInfo info, TextSpan span,
+		ImmutableArray<SyntaxTrivia> leading, ImmutableArray<SyntaxTrivia> trailing, SyntaxTree syntaxTree)
+	{
+		const SyntaxKind kind = SyntaxKind.NumericLiteral;
+
+		return info.ValueType switch
+		{
+			SpecialType.UInt32 => new SyntaxTokenWithValue<uint>(kind, span, leading, trailing, syntaxTree, (uint)info.Magnitude, info.ExplicitType),
+			SpecialType.UInt64 => new SyntaxTokenWithValue<ulong>(kind, span, leading, trailing, syntaxTree, (ulong)info.Magnitude, info.ExplicitType),
+			SpecialType.UInt128 => new SyntaxTokenWithValue<UInt128>(kind, span, leading, trailing, syntaxTree, info.Magnitude, info.ExplicitType),
+			SpecialType.Float16 => new SyntaxTokenWithValue<Half>(kind, span, leading, trailing, syntaxTree, info.F16Value, info.ExplicitType),
+			SpecialType.Float32 => new SyntaxTokenWithValue<float>(kind, span, leading, trailing, syntaxTree, info.F32Value, info.ExplicitType),
+			SpecialType.Float64 => new SyntaxTokenWithValue<double>(kind, span, leading, trailing, syntaxTree, info.F64Value, info.ExplicitType),
+			_ => throw ExceptionUtilities.Unreachable(),
+		};
 	}
 
 	private void ReadToken(ref TokenInfo info)

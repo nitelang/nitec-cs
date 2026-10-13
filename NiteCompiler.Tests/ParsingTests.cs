@@ -1,6 +1,10 @@
 global using static TUnit.Assertions.Assert;
 
+using NiteCompiler.CodeAnalysis;
 using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.Compilation;
+using NiteCompiler.Diagnostics;
+using NiteCompiler.Text;
 
 [assembly: Timeout(10_000)]
 namespace NiteCompiler.Tests;
@@ -77,6 +81,51 @@ public class ParsingTests
 		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
 		await That((function?.BodyStatement as BlockStatementSyntax)?.Statements[0]).IsTypeOf<ExpressionStatementSyntax>();
 		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	[Arguments("1", (uint)1, typeof(uint), SpecialType.None)]
+	[Arguments("1u8", (uint)1, typeof(uint), SpecialType.UInt8)]
+	[Arguments("0xFF", (uint)255, typeof(uint), SpecialType.None)]
+	[Arguments("1'000", (uint)1000, typeof(uint), SpecialType.None)]
+	[Arguments("2147483648", (uint)2147483648, typeof(uint), SpecialType.None)]
+	[Arguments("2147483648i32", (uint)2147483648, typeof(uint), SpecialType.SInt32)]
+	[Arguments("4294967296", (ulong)4294967296, typeof(ulong), SpecialType.None)]
+	[Arguments("4294967296i64", (ulong)4294967296, typeof(ulong), SpecialType.SInt64)]
+	[Arguments("1.5", 1.5f, typeof(float), SpecialType.None)]
+	[Arguments("1.5f64", 1.5, typeof(double), SpecialType.Float64)]
+	public async Task ParseNumberLiteralExpression(string literal, object value, Type type, SpecialType explicitType, CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText($$"""
+		                                 public main() {
+		                                     let x = {{literal}};
+		                                 }
+		                                 """, cancellationToken: cancellationToken);
+
+		FunctionDeclarationSyntax? function;
+		LetStatementSyntax? letStatement;
+		LiteralExpressionSyntax? literalExpression;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That(letStatement = (function!.BodyStatement as BlockStatementSyntax)?.Statements[0] as LetStatementSyntax).IsNotNull();
+		await That(literalExpression = (letStatement!.Equals!.Expression) as LiteralExpressionSyntax).IsNotNull();
+		await That(literalExpression!.Literal.LiteralValue).IsOfType(type)
+			.And.IsEqualTo(value);
+		await That(literalExpression.Literal.ExplicitType).IsEqualTo(explicitType);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseTooLargeIntegralLiteral(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   let x = 340282366920938463463374607431768211456;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
+		await That(diagnostics).Count().IsEqualTo(1);
+		await That(diagnostics[0].Descriptor.Id).IsEqualTo("integral-literal-too-large");
 	}
 
 	[Test]

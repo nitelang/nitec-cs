@@ -12,7 +12,8 @@ public static class Diagnostics
 		UnterminatedEscapedIdentifier = new("unterminated-escaped-identifier", "unterminated escaped identifier"),
 		NewlineInEscapedIdentifier = new("newline-in-escaped-identifier", "escaped identifier cannot contain a newline"),
 		InvalidUnicodeEscape = new("invalid-unicode-escape", "invalid unicode escape sequence"),
-		InvalidEscapeSequence = new("invalid-escape-sequence", "invalid escape sequence `\\{0}`");
+		InvalidEscapeSequence = new("invalid-escape-sequence", "invalid escape sequence `\\{0}`"),
+		IntegralLiteralTooLarge = new("integral-literal-too-large", "integral literal is too large");
 
 	private static string TokenText(SyntaxKind kind)
 	{
@@ -66,6 +67,11 @@ public static class Diagnostics
 		{
 			bag.Add(new Diagnostic(InvalidEscapeSequence,
 				string.Format(InvalidEscapeSequence.MessageFormat, escape), location));
+		}
+
+		public void ReportIntegralLiteralTooLarge(Location location)
+		{
+			bag.Add(new Diagnostic(IntegralLiteralTooLarge, "integral literal is too large", location));
 		}
 	}
 }
