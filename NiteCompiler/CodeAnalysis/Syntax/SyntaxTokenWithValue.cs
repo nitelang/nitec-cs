@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Diagnostics;
 using NiteCompiler.Text;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -6,6 +8,10 @@ namespace NiteCompiler.CodeAnalysis.Syntax;
 internal sealed class SyntaxTokenWithValue<T> : SyntaxToken
 {
 	public T Value { get; }
+
+	[Browsable(false)]
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public override object? LiteralValue => Value;
 
 	public SyntaxTokenWithValue(SyntaxKind kind, TextSpan span,
 		ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia,

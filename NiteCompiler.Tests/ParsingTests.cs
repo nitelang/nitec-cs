@@ -1,6 +1,9 @@
 global using static TUnit.Assertions.Assert;
 
 using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.Compilation;
+using NiteCompiler.Diagnostics;
+using NiteCompiler.Text;
 
 [assembly: Timeout(10_000)]
 namespace NiteCompiler.Tests;
@@ -76,6 +79,26 @@ public class ParsingTests
 		FunctionDeclarationSyntax? function;
 		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
 		await That((function?.BodyStatement as BlockStatementSyntax)?.Statements[0]).IsTypeOf<ExpressionStatementSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	[Arguments("1u8", (byte)1)]
+	public async Task ParseLiteralExpression(string literal, object value, CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText($$"""
+		                                 public main() {
+		                                     let x = {{literal}};
+		                                 }
+		                                 """, cancellationToken: cancellationToken);
+
+		FunctionDeclarationSyntax? function;
+		LetStatementSyntax? letStatement;
+		LiteralExpressionSyntax? literalExpression;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That(letStatement = (function!.BodyStatement as BlockStatementSyntax)?.Statements[0] as LetStatementSyntax).IsNotNull();
+		await That(literalExpression = (letStatement!.Equals!.Expression) as LiteralExpressionSyntax).IsNotNull();
+		await That(literalExpression!.Literal.LiteralValue).IsEquatableOrEqualTo(value);
 		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 

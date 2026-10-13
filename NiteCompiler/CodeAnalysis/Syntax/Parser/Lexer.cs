@@ -69,6 +69,22 @@ internal sealed partial class Lexer
 	{
 		public SyntaxKind Kind;
 		public string? Identifier; // Pure identifier value
+		public SpecialType ValueType;
+
+		public Half F16Value;
+		public float F32Value;
+		public double F64Value;
+
+		public byte U8Value;
+		public sbyte I8Value;
+		public ushort U16Value;
+		public short I16Value;
+		public uint U32Value;
+		public int I32Value;
+		public ulong U64Value;
+		public long I64Value;
+		public UInt128 U128Value;
+		public Int128 I128Value;
 	}
 
 	public SyntaxToken Lex()
@@ -99,9 +115,35 @@ internal sealed partial class Lexer
 			case SyntaxKind.EscapedIdentifier:
 				Debug.Assert(info.Identifier != null);
 				return new SyntaxTokenIdentifier(info.Kind, span, leading, trailing, syntaxTree, info.Identifier);
+			case SyntaxKind.NumericLiteral:
+				return ProduceNumericToken(in info, span, leading, trailing, syntaxTree);
 			default:
 				return new SyntaxToken(info.Kind, span, leading, trailing, syntaxTree);
 		}
+	}
+
+	private static SyntaxToken ProduceNumericToken(in TokenInfo info, TextSpan span,
+		ImmutableArray<SyntaxTrivia> leading, ImmutableArray<SyntaxTrivia> trailing, SyntaxTree syntaxTree)
+	{
+		const SyntaxKind kind = SyntaxKind.NumericLiteral;
+
+		return info.ValueType switch
+		{
+			SpecialType.SInt8 => new SyntaxTokenWithValue<sbyte>(kind, span, leading, trailing, syntaxTree, info.I8Value),
+			SpecialType.SInt16 => new SyntaxTokenWithValue<short>(kind, span, leading, trailing, syntaxTree, info.I16Value),
+			SpecialType.SInt32 => new SyntaxTokenWithValue<int>(kind, span, leading, trailing, syntaxTree, info.I32Value),
+			SpecialType.SInt64 or SpecialType.SNativeInt => new SyntaxTokenWithValue<long>(kind, span, leading, trailing, syntaxTree, info.I64Value),
+			SpecialType.SInt128 => new SyntaxTokenWithValue<Int128>(kind, span, leading, trailing, syntaxTree, info.I128Value),
+			SpecialType.UInt8 => new SyntaxTokenWithValue<byte>(kind, span, leading, trailing, syntaxTree, info.U8Value),
+			SpecialType.UInt16 => new SyntaxTokenWithValue<ushort>(kind, span, leading, trailing, syntaxTree, info.U16Value),
+			SpecialType.UInt32 => new SyntaxTokenWithValue<uint>(kind, span, leading, trailing, syntaxTree, info.U32Value),
+			SpecialType.UInt64 or SpecialType.UNativeInt => new SyntaxTokenWithValue<ulong>(kind, span, leading, trailing, syntaxTree, info.U64Value),
+			SpecialType.UInt128 => new SyntaxTokenWithValue<UInt128>(kind, span, leading, trailing, syntaxTree, info.U128Value),
+			SpecialType.Float16 => new SyntaxTokenWithValue<Half>(kind, span, leading, trailing, syntaxTree, info.F16Value),
+			SpecialType.Float32 => new SyntaxTokenWithValue<float>(kind, span, leading, trailing, syntaxTree, info.F32Value),
+			SpecialType.Float64 => new SyntaxTokenWithValue<double>(kind, span, leading, trailing, syntaxTree, info.F64Value),
+			_ => throw ExceptionUtilities.Unreachable(),
+		};
 	}
 
 	private void ReadToken(ref TokenInfo info)
