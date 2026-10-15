@@ -93,8 +93,13 @@ public class ParsingTests
 	[Arguments("4294967296", (ulong)4294967296, typeof(ulong), SpecialType.None)]
 	[Arguments("4294967296i64", (ulong)4294967296, typeof(ulong), SpecialType.SInt64)]
 	[Arguments("1.5f16", 1.5f, typeof(Half), SpecialType.Float16)]
+	[Arguments("1.5f32", 1.5f, typeof(float), SpecialType.Float32)]
 	[Arguments("1.5", 1.5f, typeof(float), SpecialType.None)]
 	[Arguments("1.5f64", 1.5, typeof(double), SpecialType.Float64)]
+	[Arguments("1.5e2", 150f, typeof(float), SpecialType.None)]
+	[Arguments("1.5e2f64", 150.0, typeof(double), SpecialType.Float64)]
+	[Arguments("1'234.5", 1234.5f, typeof(float), SpecialType.None)]
+	[Arguments("5f32", 5f, typeof(float), SpecialType.Float32)]
 	public async Task ParseNumberLiteralExpression(string literal, object value, Type type, SpecialType explicitType, CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText($$"""
@@ -109,8 +114,10 @@ public class ParsingTests
 		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
 		await That(letStatement = (function!.BodyStatement as BlockStatementSyntax)?.Statements[0] as LetStatementSyntax).IsNotNull();
 		await That(literalExpression = (letStatement!.Equals!.Expression) as LiteralExpressionSyntax).IsNotNull();
+		// attribute arguments cannot hold a Half, so the f16 case supplies a float
+		object expected = type == typeof(Half) ? (Half)(float)value : value;
 		await That(literalExpression!.Literal.LiteralValue).IsOfType(type)
-			.And.IsEqualTo(value);
+			.And.IsEqualTo(expected);
 		await That(literalExpression.Literal.ExplicitType).IsEqualTo(explicitType);
 		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
@@ -127,6 +134,20 @@ public class ParsingTests
 		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
 		await That(diagnostics).Count().IsEqualTo(1);
 		await That(diagnostics[0].Descriptor.Id).IsEqualTo("integral-literal-too-large");
+	}
+
+	[Test]
+	public async Task ParseTooLargeFloatingLiteral(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   let x = 1e100f16;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
+		await That(diagnostics).Count().IsEqualTo(1);
+		await That(diagnostics[0].Descriptor.Id).IsEqualTo("floating-literal-too-large");
 	}
 
 	[Test]

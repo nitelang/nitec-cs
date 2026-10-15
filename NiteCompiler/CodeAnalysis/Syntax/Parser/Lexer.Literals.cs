@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
@@ -223,20 +224,59 @@ internal partial class Lexer
 
 	private void ParseNumericValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
 	{
-		switch (format)
+		if (format is NumericFormat.Float or NumericFormat.FloatENotation ||
+			format is NumericFormat.Decimal && tokenInfo.ExplicitType is SpecialType.Float16 or SpecialType.Float32 or SpecialType.Float64)
 		{
-			case NumericFormat.Float or NumericFormat.FloatENotation:
-				ParseNumericFloatValue(ref tokenInfo, format, literal);
-				break;
-			default:
-				ParseNumericIntegerValue(ref tokenInfo, format, literal);
-				break;
+			ParseNumericFloatValue(ref tokenInfo, literal);
+		}
+		else
+		{
+			ParseNumericIntegerValue(ref tokenInfo, format, literal);
 		}
 	}
 
-	private void ParseNumericFloatValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
+	private void ParseNumericFloatValue(ref TokenInfo tokenInfo, scoped ReadOnlySpan<char> literal)
 	{
-		throw new NotImplementedException();
+		if (literal.Contains(Separator))
+		{
+			Span<char> cleaned = stackalloc char[literal.Length];
+			int length = 0;
+			foreach (char c in literal)
+			{
+				if (c != Separator) cleaned[length++] = c;
+			}
+
+			ParseNumericFloatValue(ref tokenInfo, cleaned);
+			return;
+		}
+
+		bool isOverflow = false;
+		switch (tokenInfo.ExplicitType)
+		{
+			case SpecialType.Float16:
+				tokenInfo.ValueType = SpecialType.Float16;
+				isOverflow = !FloatParser.TryParseF16(literal, out Half f16);
+
+				tokenInfo.F16Value = f16;
+				break;
+			case SpecialType.Float64:
+				tokenInfo.ValueType = SpecialType.Float64;
+				isOverflow = !FloatParser.TryParseF64(literal, out double f64);
+
+				tokenInfo.F64Value = f64;
+				break;
+			default:
+				tokenInfo.ValueType = SpecialType.Float32;
+				isOverflow = !FloatParser.TryParseF32(literal, out float f32);
+
+				tokenInfo.F32Value = f32;
+				break;
+		}
+
+		if (isOverflow)
+		{
+			Diagnostics.ReportFloatingLiteralTooLarge(CreateCurrentWindowLocation());
+		}
 	}
 
 	private void ParseNumericIntegerValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
