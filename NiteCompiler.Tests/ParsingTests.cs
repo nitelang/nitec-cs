@@ -319,6 +319,21 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseParamsWithTrailingComma(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main(x: i32, y: Ananas,) {
+		                               }
+		                               """);
+
+		FunctionDeclarationSyntax? function;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That(function!.ParameterList.Parameters[0]).IsTypeOf<NamedParameterSyntax>();
+		await That(function.ParameterList.Parameters[1]).IsTypeOf<NamedParameterSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
 	public async Task ValidParent(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
