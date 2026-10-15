@@ -195,6 +195,54 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseMissingType(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public type Vec3 {
+		                                   public x: ;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var declaration = (TypeDeclarationSyntax)tree.Root.Items[0]!;
+		var field = (FieldDeclarationSyntax)declaration.Members[0]!;
+
+		await That(((IdentifierNameSyntax)field.Type.Type).Identifier.IsMissing).IsTrue();
+
+		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
+		await That(diagnostics).Count().IsEqualTo(1);
+		await That(diagnostics[0].Descriptor.Id).IsEqualTo("expected-type");
+	}
+
+	[Test]
+	public async Task ParseInvalidTypeToken(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public type Vec3 {
+		                                   public x: 42;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		await That(tree.Root.Items[0]).IsTypeOf<TypeDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken).Any(d => d.Descriptor.Id == "expected-type")).IsTrue();
+	}
+
+	[Test]
+	public async Task ParseMissingNameAfterPathSeparator(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public type Vec3 {
+		                                   public x: a::;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var declaration = (TypeDeclarationSyntax)tree.Root.Items[0]!;
+		var field = (FieldDeclarationSyntax)declaration.Members[0]!;
+
+		await That(((IdentifierNameSyntax)((PathNameSyntax)field.Type.Type).Right).Identifier.IsMissing).IsTrue();
+		await That(tree.GetDiagnostics(cancellationToken).Any(d => d.Descriptor.Id == "expected-identifier")).IsTrue();
+	}
+
+	[Test]
 	public async Task ParseEmptyModule(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("module test_name123;");

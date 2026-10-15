@@ -7,6 +7,8 @@ public static class Diagnostics
 	public static readonly DiagnosticDescriptor
 		UnterminatedBlockComment = new("unterminated-block-comment", "unterminated block comment"),
 		ExpectedToken = new("expected-token", "expected `{0}`, found `{1}`"),
+		ExpectedType = new("expected-type", "type expected"),
+		ExpectedIdentifier = new("expected-identifier", "identifier expected"),
 		UnexpectedToken = new("unexpected-token", "unexpected token `{0}`"),
 		UnexpectedCharacter = new("unexpected-character", "unexpected character `{0}`"),
 		UnterminatedEscapedIdentifier = new("unterminated-escaped-identifier", "unterminated escaped identifier"),
@@ -33,6 +35,16 @@ public static class Diagnostics
 			bag.Add(new Diagnostic(ExpectedToken,
 				string.Format(ExpectedToken.MessageFormat, TokenText(expectedKind), TokenText(foundKind)),
 				location));
+		}
+
+		public void ReportExpectedType(Location location)
+		{
+			bag.Add(new Diagnostic(ExpectedType, "type expected", location));
+		}
+
+		public void ReportExpectedIdentifier(Location location)
+		{
+			bag.Add(new Diagnostic(ExpectedIdentifier, "identifier expected", location));
 		}
 
 		public void ReportUnexpectedCharacter(Location location, string character)

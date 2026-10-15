@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using NiteCompiler.Text;
+using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
@@ -237,6 +236,7 @@ internal partial class Parser
 			return ParseName();
 		}
 
-		throw new NotImplementedException();
+		_diagnostics.ReportExpectedType(Current.GetLocation());
+		return new IdentifierNameSyntax(_tree, Current.WithKind(SyntaxKind.Identifier, isMissing: true));
 	}
 }

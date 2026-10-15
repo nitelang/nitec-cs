@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using NiteCompiler.Diagnostics;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
 
@@ -22,9 +22,13 @@ internal partial class Parser
 	private PlainNameSyntax ParsePlainName(NameOptions options = NameOptions.None)
 	{
 		SyntaxToken current = PeekThenAdvance();
-		Debug.Assert(current.Kind is SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier || current.Kind.IsContextual);
 
-		if (current.Kind.IsContextual)
+		if (current.Kind is not (SyntaxKind.Identifier or SyntaxKind.EscapedIdentifier) && !current.Kind.IsContextual)
+		{
+			_diagnostics.ReportExpectedIdentifier(current.GetLocation());
+			current = current.WithKind(SyntaxKind.Identifier, isMissing: true);
+		}
+		else if (current.Kind.IsContextual)
 		{
 			current = current.WithKind(SyntaxKind.Identifier);
 		}

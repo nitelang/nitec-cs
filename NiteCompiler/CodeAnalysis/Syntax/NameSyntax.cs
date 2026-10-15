@@ -21,6 +21,6 @@ public partial class IdentifierNameSyntax
 {
 	public override string GetIdentifierValue()
 	{
-		return Identifier.IdentifierValue!;
+		return Identifier.IdentifierValue ?? string.Empty;
 	}
 }
