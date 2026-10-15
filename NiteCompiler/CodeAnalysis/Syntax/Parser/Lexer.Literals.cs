@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using System.Globalization;
 using NiteCompiler.Diagnostics;
+using NiteCompiler.Utilities;
 
 namespace NiteCompiler.CodeAnalysis.Syntax;
 
@@ -140,11 +140,10 @@ internal partial class Lexer
 				{
 					case "usize":
 						tokenInfo.ExplicitType = SpecialType.UNativeInt;
-						goto default;
+						_window.Advance(5);
+						break;
 					case "isize":
 						tokenInfo.ExplicitType = SpecialType.SNativeInt;
-						goto default;
-					default:
 						_window.Advance(5);
 						break;
 				}
@@ -154,11 +153,10 @@ internal partial class Lexer
 				{
 					case "u128":
 						tokenInfo.ExplicitType = SpecialType.UInt128;
-						goto default;
+						_window.Advance(4);
+						break;
 					case "i128":
 						tokenInfo.ExplicitType = SpecialType.SInt128;
-						goto default;
-					default:
 						_window.Advance(4);
 						break;
 				}
@@ -168,32 +166,38 @@ internal partial class Lexer
 				{
 					case "u16":
 						tokenInfo.ExplicitType = SpecialType.UInt16;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "u32":
 						tokenInfo.ExplicitType = SpecialType.UInt32;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "u64":
 						tokenInfo.ExplicitType = SpecialType.UInt64;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "i16":
 						tokenInfo.ExplicitType = SpecialType.SInt16;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "i32":
 						tokenInfo.ExplicitType = SpecialType.SInt32;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "i64":
 						tokenInfo.ExplicitType = SpecialType.SInt64;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "f16":
 						tokenInfo.ExplicitType = SpecialType.Float16;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "f32":
 						tokenInfo.ExplicitType = SpecialType.Float32;
-						goto default;
+						_window.Advance(3);
+						break;
 					case "f64":
 						tokenInfo.ExplicitType = SpecialType.Float64;
-						goto default;
-					default:
 						_window.Advance(3);
 						break;
 				}
@@ -216,28 +220,95 @@ internal partial class Lexer
 		}
 	}
 
-	#endregion
 
 	private void ParseNumericValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
 	{
-		// Strip prefix for hex/binary
+		switch (format)
+		{
+			case NumericFormat.Float or NumericFormat.FloatENotation:
+				ParseNumericFloatValue(ref tokenInfo, format, literal);
+				break;
+			default:
+				ParseNumericIntegerValue(ref tokenInfo, format, literal);
+				break;
+		}
+	}
+
+	private void ParseNumericFloatValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
+	{
+		throw new NotImplementedException();
+	}
+
+	private void ParseNumericIntegerValue(ref TokenInfo tokenInfo, NumericFormat format, ReadOnlySpan<char> literal)
+	{
+		Debug.Assert(format.IsValid());
+		Debug.Assert(format is not (NumericFormat.Float or NumericFormat.FloatENotation));
+
 		int index = 0;
 		int radix = 10;
-		if (format == NumericFormat.Hexadecimal && literal is ['0', 'x', ..])
+		if (format == NumericFormat.Hexadecimal)
 		{
+			Debug.Assert(literal.StartsWith("0x"));
 			index = 2; radix = 16;
 		}
-		else if (format == NumericFormat.Binary && literal is ['0', 'b', ..])
+		else if (format == NumericFormat.Binary)
 		{
+			Debug.Assert(literal.StartsWith("0b"));
 			index = 2; radix = 2;
 		}
 
-		if (format is NumericFormat.Float or NumericFormat.FloatENotation)
+		bool success = ParseNumericIntegerValueFallback(ref tokenInfo, format, literal, index, radix);
+
+		if (!success)
 		{
-			throw new NotImplementedException();
+			ParseNumericIntegerValueSlowFallback(ref tokenInfo, format, literal, index, radix);
+		}
+	}
+
+	/// <returns>
+	/// Logical value, whatever this method was able to parse passed literal. In 99.9% cases will return <see langword="true"/>.
+	/// </returns>
+	private bool ParseNumericIntegerValueFallback(ref TokenInfo tokenInfo, NumericFormat format,
+		ReadOnlySpan<char> literal, int index, int radix)
+	{
+		ulong magnitude = 0;
+		for (; index < literal.Length; index++)
+		{
+			char c = literal[index];
+			if (c == Separator) continue;
+
+			int digit;
+			if (c is >= '0' and <= '9')
+			{
+				digit = c - '0';
+			}
+			else
+			{
+				Debug.Assert((char)(c & ~0x20) is >= 'A' and <= 'F');
+				digit = (char)(c & ~0x20) - 'A' + 10;
+			}
+
+			ulong scaled = magnitude * (ulong)radix;
+			if (scaled / (ulong)radix != magnitude)
+			{
+				return false;
+			}
+
+			magnitude = scaled + (ulong)digit;
+			if (magnitude < scaled)
+			{
+				return false;
+			}
 		}
 
-		// TODO[Perf]: Using UInt128 here is very imperformant, maybe we can use UInt128 version as fallback, if UInt64 is overflowed
+		tokenInfo.ValueType = magnitude <= uint.MaxValue ? SpecialType.UInt32 : SpecialType.UInt64;
+		tokenInfo.Magnitude = magnitude;
+		return true;
+	}
+
+	private void ParseNumericIntegerValueSlowFallback(ref TokenInfo tokenInfo, NumericFormat format,
+		ReadOnlySpan<char> literal, int index, int radix)
+	{
 		UInt128 magnitude = 0;
 		bool overflow = false;
 		for (; index < literal.Length; index++)
@@ -245,18 +316,16 @@ internal partial class Lexer
 			char c = literal[index];
 			if (c == Separator) continue;
 
-			int digit = -1;
+			int digit;
 			if (c is >= '0' and <= '9')
 			{
 				digit = c - '0';
 			}
-			else if ((char)(c & ~0x20) is >= 'A' and <= 'F')
+			else
 			{
+				Debug.Assert((char)(c & ~0x20) is >= 'A' and <= 'F');
 				digit = (char)(c & ~0x20) - 'A' + 10;
 			}
-			Debug.Assert(digit != -1);
-
-			if (digit < 0 || digit >= radix) continue;
 
 			UInt128 scaled = magnitude * (UInt128)radix;
 			if (scaled / (UInt128)radix != magnitude)
@@ -283,4 +352,6 @@ internal partial class Lexer
 			: SpecialType.UInt128;
 		tokenInfo.Magnitude = magnitude;
 	}
+
+	#endregion
 }

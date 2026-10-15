@@ -92,6 +92,7 @@ public class ParsingTests
 	[Arguments("2147483648i32", (uint)2147483648, typeof(uint), SpecialType.SInt32)]
 	[Arguments("4294967296", (ulong)4294967296, typeof(ulong), SpecialType.None)]
 	[Arguments("4294967296i64", (ulong)4294967296, typeof(ulong), SpecialType.SInt64)]
+	[Arguments("1.5f16", 1.5f, typeof(Half), SpecialType.Float16)]
 	[Arguments("1.5", 1.5f, typeof(float), SpecialType.None)]
 	[Arguments("1.5f64", 1.5, typeof(double), SpecialType.Float64)]
 	public async Task ParseNumberLiteralExpression(string literal, object value, Type type, SpecialType explicitType, CancellationToken cancellationToken)
@@ -126,6 +127,26 @@ public class ParsingTests
 		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
 		await That(diagnostics).Count().IsEqualTo(1);
 		await That(diagnostics[0].Descriptor.Id).IsEqualTo("integral-literal-too-large");
+	}
+
+	[Test]
+	public async Task ParseUInt128IntegralLiteralFallback(CancellationToken cancellationToken)
+	{
+		// 2^64, one above ulong.MaxValue: the fast path must refuse and the UInt128 fallback must accept it.
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   let x = 18446744073709551616;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var block = (BlockStatementSyntax)function.BodyStatement!;
+		var letStatement = (LetStatementSyntax)block.Statements[0];
+		var literal = (LiteralExpressionSyntax)letStatement.Equals!.Expression!;
+
+		await That(literal.Literal.LiteralValue).IsOfType(typeof(UInt128))
+			.And.IsEqualTo((UInt128)ulong.MaxValue + 1);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
 	}
 
 	[Test]
