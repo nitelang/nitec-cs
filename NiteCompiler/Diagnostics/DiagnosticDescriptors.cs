@@ -2,21 +2,21 @@ using NiteCompiler.CodeAnalysis.Syntax;
 
 namespace NiteCompiler.Diagnostics;
 
-public static class Diagnostics
+public static class DiagnosticDescriptors
 {
 	public static readonly DiagnosticDescriptor
 		UnterminatedBlockComment = new("unterminated-block-comment", "unterminated block comment"),
 		ExpectedToken = new("expected-token", "expected `{0}`, found `{1}`"),
 		ExpectedType = new("expected-type", "type expected"),
 		ExpectedIdentifier = new("expected-identifier", "identifier expected"),
+		ExpectedBlock = new("expected-block", "block statement excepted"),
 		UnexpectedToken = new("unexpected-token", "unexpected token `{0}`"),
 		UnexpectedCharacter = new("unexpected-character", "unexpected character `{0}`"),
 		UnterminatedEscapedIdentifier = new("unterminated-escaped-identifier", "unterminated escaped identifier"),
 		NewlineInEscapedIdentifier = new("newline-in-escaped-identifier", "escaped identifier cannot contain a newline"),
 		InvalidUnicodeEscape = new("invalid-unicode-escape", "invalid unicode escape sequence"),
 		InvalidEscapeSequence = new("invalid-escape-sequence", "invalid escape sequence `\\{0}`"),
-		IntegralLiteralTooLarge = new("integral-literal-too-large", "integral literal is too large"),
-		FloatingLiteralTooLarge = new("floating-literal-too-large", "floating-point literal is too large");
+		NumericLiteralTooLarge = new("numeric-literal-too-large", "numeric literal exceed allowed magnitude");
 
 	private static string TokenText(SyntaxKind kind)
 	{
@@ -27,69 +27,62 @@ public static class Diagnostics
 	{
 		public void ReportUnterminatedBlockComment(Location location)
 		{
-			bag.Add(new Diagnostic(UnterminatedBlockComment, "unterminated block comment", location));
+			bag.Add(UnterminatedBlockComment.Instantiate(location));
 		}
 
 		public void ReportExpectedToken(Location location, SyntaxKind expectedKind, SyntaxKind foundKind)
 		{
-			bag.Add(new Diagnostic(ExpectedToken,
-				string.Format(ExpectedToken.MessageFormat, TokenText(expectedKind), TokenText(foundKind)),
-				location));
+			bag.Add(ExpectedToken.Instantiate(location, TokenText(expectedKind), TokenText(foundKind)));
 		}
 
 		public void ReportExpectedType(Location location)
 		{
-			bag.Add(new Diagnostic(ExpectedType, "type expected", location));
+			bag.Add(ExpectedType.Instantiate(location));
 		}
 
 		public void ReportExpectedIdentifier(Location location)
 		{
-			bag.Add(new Diagnostic(ExpectedIdentifier, "identifier expected", location));
+			bag.Add(ExpectedIdentifier.Instantiate(location));
+		}
+
+		public void ReportExpectedBlock(Location location)
+		{
+			bag.Add(ExpectedBlock.Instantiate(location));
 		}
 
 		public void ReportUnexpectedCharacter(Location location, string character)
 		{
-			bag.Add(new Diagnostic(UnexpectedCharacter,
-				string.Format(UnexpectedCharacter.MessageFormat, character),
-				location));
+			bag.Add(UnexpectedCharacter.Instantiate(location, character));
 		}
 
 		public void ReportUnexpectedToken(Location location, SyntaxKind foundKind)
 		{
-			bag.Add(new Diagnostic(UnexpectedToken,
-				string.Format(UnexpectedToken.MessageFormat, TokenText(foundKind)),
-				location));
+			bag.Add(UnexpectedToken.Instantiate(TokenText(foundKind), location));
 		}
 
 		public void ReportUnterminatedEscapedIdentifier(Location location)
 		{
-			bag.Add(new Diagnostic(UnterminatedEscapedIdentifier, "unterminated escaped identifier", location));
+			bag.Add(UnterminatedEscapedIdentifier.Instantiate(location));
 		}
 
 		public void ReportNewlineInEscapedIdentifier(Location location)
 		{
-			bag.Add(new Diagnostic(NewlineInEscapedIdentifier, "escaped identifier cannot contain a newline", location));
+			bag.Add(NewlineInEscapedIdentifier.Instantiate(location));
 		}
 
 		public void ReportInvalidUnicodeEscape(Location location)
 		{
-			bag.Add(new Diagnostic(InvalidUnicodeEscape, "invalid unicode escape sequence", location));
+			bag.Add(InvalidUnicodeEscape.Instantiate(location));
 		}
 
 		public void ReportInvalidEscapeSequence(Location location, char escape)
 		{
-			bag.Add(new Diagnostic(InvalidEscapeSequence,
-				string.Format(InvalidEscapeSequence.MessageFormat, escape), location));
+			bag.Add(InvalidEscapeSequence.Instantiate(escape, location));
 		}
 
-		public void ReportIntegralLiteralTooLarge(Location location)
+		public void ReportNumberLiteralTooLarge(Location location)
 		{
-			bag.Add(new Diagnostic(IntegralLiteralTooLarge, "integral literal is too large", location));
-		}
-
-		public void ReportFloatingLiteralTooLarge(Location location)
-		{
-			bag.Add(new Diagnostic(FloatingLiteralTooLarge, "floating-point literal is too large", location));
+			bag.Add(NumericLiteralTooLarge.Instantiate(location));
 		}
 	}
 }

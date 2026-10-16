@@ -8,6 +8,7 @@
     <File Path="../../../../Projects/NiteCompiler/LICENSE" />
     <File Path="../../../../Projects/NiteCompiler/README.md" />
   </Folder>
+  <Project Path="Nite.Workspace/Nite.Workspace.csproj" />
   <Project Path="NiteCompiler.Cli/NiteCompiler.Cli.csproj" />
   <Project Path="NiteCompiler.LanguageServer/NiteCompiler.LanguageServer.csproj" />
   <Project Path="NiteCompiler.SourceGenerators/NiteCompiler.SourceGenerators.csproj" />

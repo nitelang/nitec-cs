@@ -9,13 +9,13 @@ public sealed class Diagnostic
 	public ImmutableArray<DiagnosticSelection> Selections { get; init; }
 	public ImmutableArray<Attachment> Attachments { get; init; }
 
-	public Diagnostic(DiagnosticDescriptor descriptor, string message)
+	internal Diagnostic(DiagnosticDescriptor descriptor, string message)
 	{
 		Descriptor = descriptor;
 		Message = message;
 	}
 
-	public Diagnostic(DiagnosticDescriptor descriptor, string message, Location location) : this(descriptor, message)
+	internal Diagnostic(DiagnosticDescriptor descriptor, string message, Location location) : this(descriptor, message)
 	{
 		Selections = [location];
 	}

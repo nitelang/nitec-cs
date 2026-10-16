@@ -175,10 +175,10 @@ tokens:
     text: "let"
   - name: ReturnKeyword
     text: "return"
-  #- name: IfKeyword
-  #  text: "if"
-  #- name: ElseKeyword
-  #  text: "else"
+  - name: IfKeyword
+    text: "if"
+  - name: ElseKeyword
+    text: "else"
   #- name: LoopKeyword
   #  text: "loop"
   #- name: ForKeyword
@@ -675,7 +675,7 @@ nodes:
   - name: LetStatement
     base: Statement
     members:
-      - name: Let
+      - name: LetKeyword
         type: SyntaxNode
       - name: Name
         type: PlainName
@@ -704,3 +704,24 @@ nodes:
         null_safety: nullable
       - name: Semicolon
         type: SyntaxToken
+
+  - name: IfStatement
+    base: Statement
+    members:
+      - name: IfKeyword
+        type: SyntaxToken
+      - name: Condition
+        type: Expression
+      - name: Then
+        type: Statement
+      - name: ElseClause
+        type: ElseClause
+        null_safety: nullable
+
+  - name: ElseClause
+    base: SyntaxNode
+    members:
+      - name: ElseKeyword
+        type: SyntaxToken
+      - name: Statement
+        type: Statement

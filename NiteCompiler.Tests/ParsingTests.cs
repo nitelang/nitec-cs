@@ -2,9 +2,7 @@ global using static TUnit.Assertions.Assert;
 
 using NiteCompiler.CodeAnalysis;
 using NiteCompiler.CodeAnalysis.Syntax;
-using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
-using NiteCompiler.Text;
 
 [assembly: Timeout(10_000)]
 namespace NiteCompiler.Tests;
@@ -379,5 +377,106 @@ public class ParsingTests
 
 		await That(tree.Root.GetChildWithinPosition(1000)).IsNull();
 		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseIf(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   if 1 {
+		                                       return 2;
+		                                   }
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		FunctionDeclarationSyntax? function;
+		IfStatementSyntax? ifStatement;
+		await That(function = tree.Root.Items[0] as FunctionDeclarationSyntax).IsNotNull();
+		await That(ifStatement = (function!.BodyStatement as BlockStatementSyntax)?.Statements[0] as IfStatementSyntax).IsNotNull();
+		await That(ifStatement!.IfKeyword.Kind).IsEqualTo(SyntaxKind.IfKeyword);
+		await That(ifStatement.Condition.Kind).IsEqualTo(SyntaxKind.NumericLiteralExpression);
+		await That(ifStatement.Then).IsTypeOf<BlockStatementSyntax>();
+		await That(ifStatement.ElseClause).IsNull();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseIfElse(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   if 1 {
+		                                   } else {
+		                                   }
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var ifStatement = (IfStatementSyntax)((BlockStatementSyntax)function.BodyStatement!).Statements[0];
+
+		await That(ifStatement.ElseClause).IsNotNull();
+		await That(ifStatement.ElseClause!.ElseKeyword.Kind).IsEqualTo(SyntaxKind.ElseKeyword);
+		await That(ifStatement.ElseClause.Statement).IsTypeOf<BlockStatementSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseElseIf(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   if 1 {
+		                                   } else if 2 {
+		                                   }
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var ifStatement = (IfStatementSyntax)((BlockStatementSyntax)function.BodyStatement!).Statements[0];
+
+		await That(ifStatement.ElseClause).IsNotNull();
+		var elseIf = ifStatement.ElseClause!.Statement as IfStatementSyntax;
+		await That(elseIf).IsNotNull();
+		await That(((LiteralExpressionSyntax)elseIf!.Condition).Literal.Text).IsEqualTo("2");
+		await That(elseIf.ElseClause).IsNull();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseNestedIf(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   if true {
+		                                       if false {
+		                                       }
+		                                   }
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var outer = (IfStatementSyntax)((BlockStatementSyntax)function.BodyStatement!).Statements[0];
+		var inner = ((BlockStatementSyntax)outer.Then).Statements[0];
+
+		await That(inner).IsTypeOf<IfStatementSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseIfWithoutBlock(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   if 1 return 2;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var ifStatement = (IfStatementSyntax)((BlockStatementSyntax)function.BodyStatement!).Statements[0];
+
+		await That(ifStatement.Then).IsTypeOf<ReturnStatementSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsNotEmpty()
+			.And.HasSingleItem(d => d.Descriptor == DiagnosticDescriptors.ExpectedBlock);
 	}
 }

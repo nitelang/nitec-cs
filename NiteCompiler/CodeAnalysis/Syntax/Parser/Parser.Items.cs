@@ -137,7 +137,7 @@ internal partial class Parser
 			returnType = ParseReturnTypeClause();
 		}
 
-		StatementSyntax body = ParseStatement();
+		StatementSyntax body = ParseStatement(parseAttributes: true);
 
 		return new FunctionDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, name, parameters, returnType, body);
 	}

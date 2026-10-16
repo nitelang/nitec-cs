@@ -48,6 +48,14 @@ internal partial class Parser
 			{
 				case SyntaxKind.OpenParen:
 					return ParseParenthesizedExpression();
+				case SyntaxKind.FalseKeyword:
+				case SyntaxKind.TrueKeyword:
+					SyntaxToken trueOrFalse = PeekThenAdvance();
+					SyntaxKind literalKind = trueOrFalse.Kind == SyntaxKind.TrueKeyword
+						? SyntaxKind.TrueLiteralExpression
+						: SyntaxKind.FalseLiteralExpression;
+
+					return new LiteralExpressionSyntax(literalKind, _tree, trueOrFalse);
 				case SyntaxKind.NumericLiteral:
 					SyntaxToken current = PeekThenAdvance();
 

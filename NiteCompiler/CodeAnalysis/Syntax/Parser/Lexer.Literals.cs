@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
@@ -275,7 +274,7 @@ internal partial class Lexer
 
 		if (isOverflow)
 		{
-			Diagnostics.ReportFloatingLiteralTooLarge(CreateCurrentWindowLocation());
+			Diagnostics.ReportNumberLiteralTooLarge(CreateCurrentWindowLocation());
 		}
 	}
 
@@ -382,7 +381,7 @@ internal partial class Lexer
 
 		if (overflow)
 		{
-			Diagnostics.ReportIntegralLiteralTooLarge(CreateCurrentWindowLocation());
+			Diagnostics.ReportNumberLiteralTooLarge(CreateCurrentWindowLocation());
 			magnitude = UInt128.MaxValue;
 		}
 
