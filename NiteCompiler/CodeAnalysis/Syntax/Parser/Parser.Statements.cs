@@ -7,8 +7,9 @@ internal partial class Parser
 {
 	private StatementSyntax ParseStatement(bool parseAttributes = false)
 	{
-		// TODO: read attributes
-		SyntaxList<AttributeListSyntax> attributes = SyntaxList<AttributeListSyntax>.Empty;
+		SyntaxList<AttributeListSyntax> attributes = parseAttributes
+			? ParseAttributeLists()
+			: SyntaxList<AttributeListSyntax>.Empty;
 
 		switch (Current.Kind)
 		{

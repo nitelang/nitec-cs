@@ -1,5 +1,7 @@
 tokens:
   # None and EndOfFile is embedded in generator code
+  - name: Hash
+    text: "#"
   - name: Tilde
     text: "~"
     unary: OnesComplementExpression
@@ -428,6 +430,30 @@ nodes:
       - name: LogicalOrExpression # x || y
         precedence: ConditionalOr
 
+  - name: ArrayExpression
+    base: Expression
+    members:
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Elements
+        type: separated<Expression>
+      - name: CloseBracket
+        type: SyntaxToken
+
+  - name: RepeatExpression
+    base: Expression
+    members:
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Value
+        type: Expression
+      - name: Semicolon
+        type: SyntaxToken
+      - name: Count
+        type: Expression
+      - name: CloseBracket
+        type: SyntaxToken
+
   # types
   - name: Type
     abstract: true
@@ -437,6 +463,30 @@ nodes:
     base: Type
     members:
       - name: Keyword
+        type: SyntaxToken
+
+  - name: SizedArrayType
+    base: Type
+    members:
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Type
+        type: Type
+      - name: Semicolon
+        type: SyntaxToken
+      - name: Count
+        type: Expression
+      - name: CloseBracket
+        type: SyntaxToken
+
+  - name: UnsizedArrayType
+    base: Type
+    members:
+      - name: OpenBracket
+        type: SyntaxToken
+      - name: Type
+        type: Type
+      - name: CloseBracket
         type: SyntaxToken
 
   # names
@@ -451,8 +501,8 @@ nodes:
   - name: IdentifierName
     base: PlainName
     members:
-        - name: Identifier
-          type: SyntaxToken
+      - name: Identifier
+        type: SyntaxToken
 
   # TODO: Add GenericName
 
@@ -489,6 +539,9 @@ nodes:
     members:
       - name: Name
         type: Name
+      - name: Arguments
+        type: ArgumentList
+        null_safety: nullable
 
   - name: AttributeList
     base: SyntaxNode

@@ -141,6 +141,10 @@ internal sealed partial class Lexer
 
 		switch (_window.Current)
 		{
+			case '#':
+				_window.Advance();
+				info.Kind = SyntaxKind.Hash;
+				break;
 			case '.':
 				if (_window.Next is '.')
 				{

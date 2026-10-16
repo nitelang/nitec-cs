@@ -131,7 +131,8 @@ public class ParsingTests
 
 		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
 		await That(diagnostics).Count().IsEqualTo(1);
-		await That(diagnostics[0].Descriptor.Id).IsEqualTo("integral-literal-too-large");
+		await That(diagnostics).IsNotEmpty()
+			.And.HasSingleItem(d => d.Descriptor == DiagnosticDescriptors.NumericLiteralTooLarge);
 	}
 
 	[Test]
@@ -143,9 +144,8 @@ public class ParsingTests
 		                               }
 		                               """, cancellationToken: cancellationToken);
 
-		var diagnostics = tree.GetDiagnostics(cancellationToken).ToList();
-		await That(diagnostics).Count().IsEqualTo(1);
-		await That(diagnostics[0].Descriptor.Id).IsEqualTo("floating-literal-too-large");
+		await That(tree.GetDiagnostics(cancellationToken)).IsNotEmpty()
+			.And.HasSingleItem(d => d.Descriptor == DiagnosticDescriptors.NumericLiteralTooLarge);
 	}
 
 	[Test]

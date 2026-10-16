@@ -21,17 +21,17 @@ internal partial class Parser
 
 	private ItemSyntax ParseItem()
 	{
-		// TODO: attributes
+		SyntaxList<AttributeListSyntax> attributes = ParseAttributeLists();
 
 		if (Current.Kind == SyntaxKind.ModuleKeyword)
 		{
-			return ParseModuleDeclaration();
+			return ParseModuleDeclaration(attributes);
 		}
 
-		return ParseMember();
+		return ParseMember(attributes);
 	}
 
-	private ModuleDeclarationSyntax ParseModuleDeclaration()
+	private ModuleDeclarationSyntax ParseModuleDeclaration(SyntaxList<AttributeListSyntax> attributes)
 	{
 		SyntaxToken module = PeekThenAdvance();
 		Debug.Assert(module.Kind == SyntaxKind.ModuleKeyword);
@@ -46,7 +46,7 @@ internal partial class Parser
 			members.Add(ParseItem());
 		}
 
-		return new ModuleDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, module, name, semicolon, members.ToSyntaxListAndFree());
+		return new ModuleDeclarationSyntax(_tree, attributes, module, name, semicolon, members.ToSyntaxListAndFree());
 	}
 
 	private static bool IsMemberModifier(SyntaxKind kind)
@@ -77,7 +77,7 @@ internal partial class Parser
 		};
 	}
 
-	private MemberSyntax ParseMember()
+	private MemberSyntax ParseMember(SyntaxList<AttributeListSyntax> attributes)
 	{
 		SyntaxToken? accessibility = MatchContextualOrNot(SyntaxKind.FileKeyword, SyntaxKind.PublicKeyword);
 
@@ -108,7 +108,7 @@ internal partial class Parser
 
 			SyntaxToken semicolon = MatchToken(SyntaxKind.Semicolon);
 
-			return new FieldDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers.ToSyntaxListAndFree(), name, type, semicolon);
+			return new FieldDeclarationSyntax(_tree, attributes, accessibility, modifiers.ToSyntaxListAndFree(), name, type, semicolon);
 		}
 	}
 
@@ -120,7 +120,9 @@ internal partial class Parser
 		ArrayBuilder<MemberSyntax> members = ArrayBuilder<MemberSyntax>.GetInstance();
 		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBrace))
 		{
-			members.Add(ParseMember());
+			SyntaxList<AttributeListSyntax> lists = ParseAttributeLists();
+
+			members.Add(ParseMember(lists));
 		}
 		SyntaxToken closeBrace = MatchToken(SyntaxKind.CloseBrace);
 
@@ -141,6 +143,65 @@ internal partial class Parser
 
 		return new FunctionDeclarationSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, accessibility, modifiers, name, parameters, returnType, body);
 	}
+
+	#region Attributes
+
+	private AttributeSyntax ParseAttribute()
+	{
+		NameSyntax name = ParseName();
+
+		ArgumentListSyntax? arguments = null;
+		if (Current.Kind == SyntaxKind.OpenParen)
+		{
+			arguments = ParseArgumentList();
+		}
+
+		return new AttributeSyntax(_tree, name, arguments);
+	}
+
+	private AttributeListSyntax ParseAttributeList()
+	{
+		SyntaxToken hash = MatchToken(SyntaxKind.Hash);
+
+		SyntaxToken openBracket = MatchToken(SyntaxKind.OpenBracket);
+
+		ArrayBuilder<SyntaxNode> attributes = ArrayBuilder<SyntaxNode>.GetInstance();
+		while (Current.Kind is not (SyntaxKind.EndOfFile or SyntaxKind.CloseBracket))
+		{
+			attributes.Add(ParseAttribute());
+
+			if (Current.Kind == SyntaxKind.Comma)
+			{
+				attributes.Add(PeekThenAdvance());
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		SyntaxToken closeBracket = MatchToken(SyntaxKind.CloseBracket);
+
+		return new AttributeListSyntax(_tree, hash, openBracket, attributes.ToSeparatedSyntaxListAndFree<AttributeSyntax>(), closeBracket);
+	}
+
+	private SyntaxList<AttributeListSyntax> ParseAttributeLists()
+	{
+		if (Current.Kind is SyntaxKind.Hash)
+		{
+			ArrayBuilder<AttributeListSyntax> lists = ArrayBuilder<AttributeListSyntax>.GetInstance();
+			while (Current.Kind is SyntaxKind.Hash)
+			{
+				lists.Add(ParseAttributeList());
+			}
+
+			return lists.ToSyntaxListAndFree();
+		}
+
+		return SyntaxList<AttributeListSyntax>.Empty;
+	}
+
+	#endregion
 
 	#region Arguments & Parameters
 
