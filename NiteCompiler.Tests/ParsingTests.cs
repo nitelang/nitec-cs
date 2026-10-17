@@ -402,6 +402,73 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseSimpleAttribute(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               #[simple]
+		                               module x;
+		                               """, cancellationToken: cancellationToken);
+
+		ModuleDeclarationSyntax? module;
+		await That(module = tree.Root.Items[0] as ModuleDeclarationSyntax).IsNotNull();
+		await That(module!.AttributeLists).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes[0].Arguments).IsNull();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseAttribute(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               #[complex(x, 1, true)]
+		                               module x;
+		                               """, cancellationToken: cancellationToken);
+
+		ModuleDeclarationSyntax? module;
+		await That(module = tree.Root.Items[0] as ModuleDeclarationSyntax).IsNotNull();
+		await That(module!.AttributeLists).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes[0].Arguments).IsNotNull();
+		await That(module.AttributeLists[0].Attributes[0].Arguments!.Arguments).Count().IsEqualTo(3);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseAttributeWithTrailingComma(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               #[complex(x, 1, true,),]
+		                               module x;
+		                               """, cancellationToken: cancellationToken);
+
+		ModuleDeclarationSyntax? module;
+		await That(module = tree.Root.Items[0] as ModuleDeclarationSyntax).IsNotNull();
+		await That(module!.AttributeLists).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes[0].Arguments).IsNotNull();
+		await That(module.AttributeLists[0].Attributes[0].Arguments!.Arguments).Count().IsEqualTo(3);
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseAttributeList(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               #[complex(x, 1, true), simple]
+		                               module x;
+		                               """, cancellationToken: cancellationToken);
+
+		ModuleDeclarationSyntax? module;
+		await That(module = tree.Root.Items[0] as ModuleDeclarationSyntax).IsNotNull();
+		await That(module!.AttributeLists).Count().IsEqualTo(1);
+		await That(module.AttributeLists[0].Attributes).Count().IsEqualTo(2);
+		await That(module.AttributeLists[0].Attributes[0].Arguments).IsNotNull();
+		await That(module.AttributeLists[0].Attributes[1].Arguments).IsNull();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
 	public async Task ParseIfElse(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""

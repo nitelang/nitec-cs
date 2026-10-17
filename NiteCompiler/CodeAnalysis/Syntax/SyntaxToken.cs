@@ -20,7 +20,7 @@ public class SyntaxToken : SyntaxNode
 	public ImmutableArray<SyntaxTrivia> LeadingTrivia { get; }
 
 	/// <summary>
-	/// Immutable array of leading trivia attached to <see langword="this"/> token.
+	/// Immutable array of trailing trivia attached to <see langword="this"/> token.
 	/// </summary>
 	public ImmutableArray<SyntaxTrivia> TrailingTrivia { get; }
 

@@ -60,6 +60,10 @@ internal partial class Parser
 					SyntaxToken current = PeekThenAdvance();
 
 					return new LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression, _tree, current);
+				case SyntaxKind.Identifier:
+				case SyntaxKind.EscapedIdentifier:
+				case { IsContextual: true }:
+					return ParseName(NameOptions.InExpression);
 				default:
 					// TODO: error-prone
 					// throw in here is just a temp stub, remove it ASAP!

@@ -500,6 +500,9 @@ nodes:
 
   - name: IdentifierName
     base: PlainName
+    kinds:
+      - name: IdentifierName
+        precedence: Primary
     members:
       - name: Identifier
         type: SyntaxToken
@@ -508,6 +511,9 @@ nodes:
 
   - name: PathName
     base: Name
+    kinds:
+      - name: PathName
+        precedence: Primary
     members:
       - name: Left
         type: Name
@@ -521,7 +527,7 @@ nodes:
     abstract: true
     base: SyntaxNode
     members:
-      - name: Attributes
+      - name: AttributeLists
         type: <AttributeList>
 
   - name: Member
