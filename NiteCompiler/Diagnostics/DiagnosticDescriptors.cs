@@ -10,6 +10,7 @@ public static class DiagnosticDescriptors
 		ExpectedType = new("expected-type", "type expected"),
 		ExpectedIdentifier = new("expected-identifier", "identifier expected"),
 		ExpectedBlock = new("expected-block", "block statement excepted"),
+		ExpectedExpression = new("expected-expression", "expression expected"),
 		UnexpectedToken = new("unexpected-token", "unexpected token `{0}`"),
 		UnexpectedCharacter = new("unexpected-character", "unexpected character `{0}`"),
 		UnterminatedEscapedIdentifier = new("unterminated-escaped-identifier", "unterminated escaped identifier"),
@@ -48,6 +49,11 @@ public static class DiagnosticDescriptors
 		public void ReportExpectedBlock(Location location)
 		{
 			bag.Add(ExpectedBlock.Instantiate(location));
+		}
+
+		public void ReportExpectedExpression(Location location)
+		{
+			bag.Add(ExpectedExpression.Instantiate(location));
 		}
 
 		public void ReportUnexpectedCharacter(Location location, string character)

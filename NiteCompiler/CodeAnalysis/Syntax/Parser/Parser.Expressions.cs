@@ -65,9 +65,33 @@ internal partial class Parser
 				case { IsContextual: true }:
 					return ParseName(NameOptions.InExpression);
 				default:
-					// TODO: error-prone
-					// throw in here is just a temp stub, remove it ASAP!
-					throw ExceptionUtilities.UnexpectedValue(kind);
+					if (IsPresentedAny(SyntaxFacts.TypeKeywords))
+					{
+						// check for intrinsic type followed by member access
+						SyntaxToken keyword = PeekThenAdvance();
+						ExpressionSyntax predefinedType = new PredefinedTypeSyntax(_tree, keyword);
+
+						// TODO: resolve syntax i32::member, i32.member
+						if (Current.Kind is not (SyntaxKind.Dot or SyntaxKind.DoubleColon))
+						{
+							_diagnostics.ReportUnexpectedToken(keyword.GetLocation(), keyword.Kind);
+						}
+
+						return predefinedType;
+					}
+
+					ExpressionSyntax missingName = new IdentifierNameSyntax(_tree, Current.WithKind(SyntaxKind.Identifier, isMissing: true));
+
+					if (kind == SyntaxKind.EndOfFile)
+					{
+						_diagnostics.ReportExpectedExpression(Current.GetLocation());
+					}
+					else
+					{
+						_diagnostics.ReportUnexpectedToken(Current.GetLocation(), kind);
+					}
+
+					return missingName;
 			}
 		}
 

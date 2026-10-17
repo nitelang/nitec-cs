@@ -302,6 +302,25 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseMissingExpression(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("""
+		                               public main() {
+		                                   let x = ;
+		                               }
+		                               """, cancellationToken: cancellationToken);
+
+		var function = (FunctionDeclarationSyntax)tree.Root.Items[0]!;
+		var letStatement = (LetStatementSyntax)((BlockStatementSyntax)function.BodyStatement!).Statements[0];
+		var name = letStatement.Equals!.Expression as IdentifierNameSyntax;
+
+		await That(name).IsNotNull();
+		await That(name!.Identifier.IsMissing).IsTrue();
+		await That(tree.GetDiagnostics(cancellationToken)).IsNotEmpty()
+			.And.HasSingleItem(d => d.Descriptor == DiagnosticDescriptors.UnexpectedToken);
+	}
+
+	[Test]
 	public async Task ParseParams(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("""
