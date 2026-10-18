@@ -30,7 +30,7 @@ internal sealed class MergedModuleDeclaration : MergedItemDeclaration
 		return new([declaration]);
 	}
 
-	public ImmutableArray<SourceLocation> NameLocations
+	public ImmutableArray<Location> NameLocations
 	{
 		get
 		{
@@ -39,7 +39,7 @@ internal sealed class MergedModuleDeclaration : MergedItemDeclaration
 				return [Declarations[0].NameLocation];
 			}
 
-			var builder = ImmutableArray.CreateBuilder<SourceLocation>();
+			var builder = ImmutableArray.CreateBuilder<Location>();
 			foreach (SingleModuleDeclaration declaration in Declarations)
 			{
 				SourceLocation loc = declaration.NameLocation;

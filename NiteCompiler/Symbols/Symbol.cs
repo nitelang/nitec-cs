@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
@@ -75,6 +76,8 @@ public abstract class Symbol
 			return null;
 		}
 	}
+
+	public virtual ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
 	internal virtual void ForceComplete(Predicate<Symbol>? filter, CancellationToken cancellationToken = default)
 	{

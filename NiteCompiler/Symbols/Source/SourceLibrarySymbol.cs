@@ -43,17 +43,17 @@ internal sealed class SourceLibrarySymbol : LibrarySymbol
 
 	public override ImmutableArray<Symbol> GetMembersUnordered()
 	{
-		throw new NotImplementedException();
+		return [GlobalModule];
 	}
 
 	public override ImmutableArray<Symbol> GetMembers()
 	{
-		throw new NotImplementedException();
+		return [GlobalModule];
 	}
 
 	public override ImmutableArray<Symbol> GetMembers(string name)
 	{
-		throw new NotImplementedException();
+		return name == string.Empty ? [GlobalModule] : [];
 	}
 
 	public override ImmutableArray<TypeSymbol> GetTypeMembers()
