@@ -3,19 +3,62 @@ using NiteCompiler.CodeAnalysis.Syntax;
 
 namespace NiteCompiler.CodeAnalysis.Declarations;
 
+/// <summary>
+/// A declaration table keeps track of root module declarations from parse trees. It is optimized
+/// for one set of declarations that stays constant ('older') plus a single root declaration for the
+/// currently edited file ('latest') which is added and removed repeatedly. The merged root of the
+/// 'older' forest is cached and re-used as long as that forest does not change.
+/// </summary>
+/// <remarks>
+/// Diagrammatically:
+/// <code>
+///                   MergedRoot
+///                  /          \
+///   old merged root            new merged root
+///  /   |   |   |   \                \
+/// old singles forest                 new single tree
+/// </code>
+/// </remarks>
 internal sealed class DeclarationTable
 {
-	// TODO: Roslyn parity — roots are currently rebuilt from the raw syntax trees on demand (no Lazy<RootModuleDeclaration>,
-	// no older/latest split, no Cache of merged root/type+module names, no source-location ordering).
-	// see DeclarationTableBuilder for the pending builder.
-	public static readonly DeclarationTable Empty = new(ImmutableArray<SyntaxTree>.Empty);
+	public static readonly DeclarationTable Empty = new([], latestLazyRootDeclaration: null, cache: null);
 
-	public ImmutableArray<SyntaxTree> Trees { get; }
-	private MergedModuleDeclaration? _lateinitRoot;
+	// All root declarations, split so the unchanging 'older' forest can be cached separately
+	// from the constantly changing 'latest' declaration. Insertion order = syntax tree order.
+	internal ImmutableArray<Lazy<RootModuleDeclaration>> AllOlderRootDeclarations { get; }
+	internal Lazy<RootModuleDeclaration>? LatestLazyRootDeclaration { get; }
+
+	// Cache of values computed over AllOlderRootDeclarations only; re-used while that set is unchanged.
+	internal Cache MergedCache { get; }
+
+	// The lazily computed total merged declaration.
+	private MergedModuleDeclaration? _mergedRoot;
+
+	internal DeclarationTable(
+		ImmutableArray<Lazy<RootModuleDeclaration>> allOlderRootDeclarations,
+		Lazy<RootModuleDeclaration>? latestLazyRootDeclaration,
+		Cache? cache)
+	{
+		AllOlderRootDeclarations = allOlderRootDeclarations;
+		LatestLazyRootDeclaration = latestLazyRootDeclaration;
+		MergedCache = cache ?? new Cache(this);
+	}
 
 	public DeclarationTable(ImmutableArray<SyntaxTree> trees)
+		: this(CreateLazyRoots(trees), latestLazyRootDeclaration: null, cache: null)
 	{
-		Trees = trees;
+	}
+
+	private static ImmutableArray<Lazy<RootModuleDeclaration>> CreateLazyRoots(ImmutableArray<SyntaxTree> trees)
+	{
+		var roots = ImmutableArray.CreateBuilder<Lazy<RootModuleDeclaration>>(trees.Length);
+
+		foreach (SyntaxTree tree in trees)
+		{
+			roots.Add(new Lazy<RootModuleDeclaration>(() => DeclarationTreeBuilder.ForTree(tree)));
+		}
+
+		return roots.ToImmutable();
 	}
 
 	public DeclarationTableBuilder ToBuilder()
@@ -25,22 +68,68 @@ internal sealed class DeclarationTable
 
 	public MergedModuleDeclaration GetMergedRoot()
 	{
-		if (_lateinitRoot == null)
+		if (_mergedRoot == null)
 		{
-			Interlocked.CompareExchange(ref _lateinitRoot, CalculateMergedRoot(), null);
+			Interlocked.CompareExchange(ref _mergedRoot, CalculateMergedRoot(), null);
 		}
-		return _lateinitRoot;
+		return _mergedRoot;
 	}
 
 	private MergedModuleDeclaration CalculateMergedRoot()
 	{
-		var builder = ImmutableArray.CreateBuilder<SingleModuleDeclaration>();
+		MergedModuleDeclaration oldRoot = MergedCache.MergedRoot;
 
-		foreach (var tree in Trees)
+		if (LatestLazyRootDeclaration == null)
 		{
-			builder.Add(DeclarationTreeBuilder.ForTree(tree));
+			return oldRoot;
 		}
 
+		// shortcut: result order is older-forest order with 'latest' appended last, not syntax-tree
+		// order; correct while trees are only ever appended in order — upgrade to sorting roots by
+		// source location when RemoveSyntaxTrees/ReplaceSyntaxTree lets an edit move 'latest' out of last position.
+		var builder = ImmutableArray.CreateBuilder<SingleModuleDeclaration>(oldRoot.Declarations.Length + 1);
+		builder.AddRange(oldRoot.Declarations);
+		builder.Add(LatestLazyRootDeclaration.Value);
+
 		return MergedModuleDeclaration.Create(builder.ToImmutable());
+	}
+
+	/// <summary>
+	/// Values cached over the 'older' forest: the merged root of all older declarations, with each
+	/// lazy root realized only on first merge.
+	/// </summary>
+	internal sealed class Cache
+	{
+		private readonly DeclarationTable _table;
+		private MergedModuleDeclaration? _mergedRoot;
+
+		internal Cache(DeclarationTable table)
+		{
+			_table = table;
+		}
+
+		internal MergedModuleDeclaration MergedRoot
+		{
+			get
+			{
+				if (_mergedRoot is null)
+				{
+					ImmutableArray<Lazy<RootModuleDeclaration>> olderRoots = _table.AllOlderRootDeclarations;
+
+					var roots = ImmutableArray.CreateBuilder<SingleModuleDeclaration>(olderRoots.Length);
+					foreach (Lazy<RootModuleDeclaration> root in olderRoots)
+					{
+						roots.Add(root.Value);
+					}
+
+					Interlocked.CompareExchange(
+						ref _mergedRoot,
+						MergedModuleDeclaration.Create(roots.ToImmutable()),
+						comparand: null);
+				}
+
+				return _mergedRoot;
+			}
+		}
 	}
 }
