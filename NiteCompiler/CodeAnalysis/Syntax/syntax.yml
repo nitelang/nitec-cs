@@ -147,6 +147,9 @@ tokens:
     binary: LogicalOrExpression
 
   # keywords - general
+  - name: UseKeyword
+    text: "use"
+    contextual: true # Maybe will be promoted to the strict keyword
   - name: ModuleKeyword
     text: "module"
   - name: TypeKeyword
@@ -652,6 +655,16 @@ nodes:
       - name: Arguments
         type: separated<Argument>
       - name: CloseBracket
+        type: SyntaxToken
+
+  - name: UseDirective
+    base: Item
+    members:
+      - name: UseKeyword
+        type: SyntaxToken
+      - name: Name
+        type: Name
+      - name: Semicolon
         type: SyntaxToken
 
   - name: ModuleDeclaration

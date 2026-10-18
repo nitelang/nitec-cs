@@ -28,7 +28,21 @@ internal partial class Parser
 			return ParseModuleDeclaration(attributes);
 		}
 
-		return ParseMember(attributes);
+		// TODO[low-priority]: In future there will be attribute mark syntax
+		// And syntax:
+		// #[xxx] @library
+		// use module_name::sub_name;
+		// should be valid
+		if (Current.Kind == SyntaxKind.UseKeyword && attributes.IsEmpty && // use directives does not have attributes
+			Peek(1).Kind is not (SyntaxKind.OpenParen or SyntaxKind.Equals or SyntaxKind.Colon) // not field or function
+			)
+		{
+			return ParseUseDirective();
+		}
+
+		MemberSyntax member = ParseMember(attributes);
+
+		return member;
 	}
 
 	private ModuleDeclarationSyntax ParseModuleDeclaration(SyntaxList<AttributeListSyntax> attributes)
@@ -94,22 +108,31 @@ internal partial class Parser
 			SyntaxToken type = PeekThenAdvance();
 			return ParseTypeDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), type);
 		}
-		else
+
+		PlainNameSyntax name = ParsePlainName();
+
+		if (Current.Kind == SyntaxKind.OpenParen)
 		{
-			PlainNameSyntax name = ParsePlainName();
-
-			if (Current.Kind == SyntaxKind.OpenParen)
-			{
-				return ParseFunctionDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), name);
-			}
-
-			// else: field
-			TypeClauseSyntax type = ParseTypeClause();
-
-			SyntaxToken semicolon = MatchToken(SyntaxKind.Semicolon);
-
-			return new FieldDeclarationSyntax(_tree, attributes, accessibility, modifiers.ToSyntaxListAndFree(), name, type, semicolon);
+			return ParseFunctionDeclaration(accessibility, modifiers.ToSyntaxListAndFree(), name);
 		}
+
+		// else: field
+		TypeClauseSyntax typeClause = ParseTypeClause();
+
+		SyntaxToken semicolon = MatchToken(SyntaxKind.Semicolon);
+
+		return new FieldDeclarationSyntax(_tree, attributes, accessibility, modifiers.ToSyntaxListAndFree(), name, typeClause, semicolon);
+	}
+
+	private UseDirectiveSyntax ParseUseDirective()
+	{
+		SyntaxToken useKeyword = MatchToken(SyntaxKind.UseKeyword);
+
+		NameSyntax name = ParseName();
+
+		SyntaxToken semicolon = MatchToken(SyntaxKind.Semicolon);
+
+		return new UseDirectiveSyntax(_tree, SyntaxList<AttributeListSyntax>.Empty, useKeyword, name, semicolon);
 	}
 
 	private TypeDeclarationSyntax ParseTypeDeclaration(SyntaxToken? accessibility, SyntaxList<SyntaxToken> modifiers, SyntaxToken type)

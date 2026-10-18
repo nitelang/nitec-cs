@@ -21,6 +21,8 @@ public readonly struct SyntaxList<T> : IEnumerable<T> where T : SyntaxNode
 
 	public int Count => _nodes.Length;
 
+	public bool IsEmpty => Count == 0;
+
 	public T this[int index] => _nodes[index];
 
 	public static SyntaxList<T> CastUp<TDerived>(SyntaxList<TDerived> items)

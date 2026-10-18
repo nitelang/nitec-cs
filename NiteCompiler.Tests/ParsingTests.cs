@@ -241,6 +241,36 @@ public class ParsingTests
 	}
 
 	[Test]
+	public async Task ParseUseDirective(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("use x;");
+
+		await That(tree.Root.Items).Count().IsEqualTo(1);
+		await That(tree.Root.Items[0]).IsTypeOf<UseDirectiveSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseUsePathDirective(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("use x::y::z;");
+
+		await That(tree.Root.Items).Count().IsEqualTo(1);
+		await That(tree.Root.Items[0]).IsTypeOf<UseDirectiveSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
+	public async Task ParseUseAsFunction(CancellationToken cancellationToken)
+	{
+		var tree = SyntaxTree.FromText("use();");
+
+		await That(tree.Root.Items).Count().IsEqualTo(1);
+		await That(tree.Root.Items[0]).IsTypeOf<FunctionDeclarationSyntax>();
+		await That(tree.GetDiagnostics(cancellationToken)).IsEmpty();
+	}
+
+	[Test]
 	public async Task ParseEmptyModule(CancellationToken cancellationToken)
 	{
 		var tree = SyntaxTree.FromText("module test_name123;");
