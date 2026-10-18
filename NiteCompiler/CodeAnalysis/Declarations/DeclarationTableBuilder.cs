@@ -9,10 +9,37 @@ internal sealed class DeclarationTableBuilder
 	private static readonly ObjectPool<DeclarationTableBuilder> Pool = new(static () => new DeclarationTableBuilder());
 
 	private DeclarationTable _table;
-
+	private readonly List<Lazy<RootModuleDeclaration>> _addedLazyRootDeclarations;
+	private readonly List<Lazy<RootModuleDeclaration>> _removedLazyRootDeclarations;
 	private DeclarationTableBuilder()
 	{
 		_table = DeclarationTable.Empty;
+		_addedLazyRootDeclarations = [];
+		_removedLazyRootDeclarations = [];
+	}
+
+	public void AddRootDeclaration(Lazy<RootModuleDeclaration> rootDeclaration)
+	{
+		RealizeRemoves();
+
+		throw new NotImplementedException();
+	}
+
+	public void RemoveRootDeclaration(Lazy<RootModuleDeclaration> rootDeclaration)
+	{
+		RealizeAdds();
+
+		throw new NotImplementedException();
+	}
+
+	private void RealizeRemoves()
+	{
+		throw new NotImplementedException();
+	}
+
+	private void RealizeAdds()
+	{
+		throw new NotImplementedException();
 	}
 
 	public static DeclarationTableBuilder GetInstance(DeclarationTable table)
@@ -27,7 +54,10 @@ internal sealed class DeclarationTableBuilder
 	public DeclarationTable ToDeclarationTableAndFree()
 	{
 		DeclarationTable table = _table;
+
+		_table = DeclarationTable.Empty;
 		Pool.Free(this);
+
 		return table;
 	}
 }

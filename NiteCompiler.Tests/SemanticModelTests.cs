@@ -24,7 +24,7 @@ public class SemanticModelTests
 	[Test]
 	public async Task GetSemanticModelExposesParseDiagnostics(CancellationToken cancellationToken)
 	{
-		// Missing module-name terminator is a parse error.
+		// Missing module terminator is a parse error.
 		var tree = SyntaxTree.FromText("module A", cancellationToken: cancellationToken);
 		var compilation = NiteCompilation.Create(null, Options, [tree]);
 

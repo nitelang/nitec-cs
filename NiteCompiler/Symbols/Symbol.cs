@@ -33,6 +33,32 @@ public abstract class Symbol
 	/// </summary>
 	public virtual Accessibility Accessibility => Accessibility.None;
 
+	public virtual LibrarySymbol? ContainingLibrary
+	{
+		get
+		{
+			if (ContainingSymbol is LibrarySymbol lib)
+			{
+				return lib;
+			}
+
+			return ContainingSymbol?.ContainingLibrary;
+		}
+	}
+
+	public virtual ModuleSymbol? ContainingModule
+	{
+		get
+		{
+			if (ContainingSymbol is ModuleSymbol lib)
+			{
+				return lib;
+			}
+
+			return ContainingSymbol?.ContainingModule;
+		}
+	}
+
 	public virtual NiteCompilation? DeclaringCompilation
 	{
 		get
