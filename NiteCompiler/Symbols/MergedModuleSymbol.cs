@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using NiteCompiler.Compilation;
 using NiteCompiler.Utilities;
 
 namespace NiteCompiler.Symbols;
@@ -16,6 +17,8 @@ internal sealed class MergedModuleSymbol : ModuleSymbol
 
 		Modules = modules;
 	}
+
+	// TODO: Cache members
 
 	public override ImmutableArray<Symbol> GetMembersUnordered()
 	{
@@ -38,10 +41,12 @@ internal sealed class MergedModuleSymbol : ModuleSymbol
 			builder.AddRange(module.GetMembers());
 		}
 
+		builder.Sort(LexicalOrderSymbolComparer.Instance);
+
 		return builder.ToImmutableAndFree();
 	}
 
-	public override ImmutableArray<Symbol> GetMembers(string name)
+	public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
 	{
 		var builder = ArrayBuilder<Symbol>.GetInstance();
 
@@ -50,12 +55,14 @@ internal sealed class MergedModuleSymbol : ModuleSymbol
 			builder.AddRange(module.GetMembers(name));
 		}
 
+		builder.Sort(LexicalOrderSymbolComparer.Instance);
+
 		return builder.ToImmutableAndFree();
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers()
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
 	{
-		var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+		var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
 		foreach (ModuleSymbol module in Modules)
 		{
@@ -65,14 +72,30 @@ internal sealed class MergedModuleSymbol : ModuleSymbol
 		return builder.ToImmutableAndFree();
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers(string name, int? arity)
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
 	{
-		var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+		var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+		foreach (ModuleSymbol module in Modules)
+		{
+			builder.AddRange(module.GetTypeMembers());
+		}
+
+		builder.Sort(LexicalOrderSymbolComparer.Instance);
+
+		return builder.ToImmutableAndFree();
+	}
+
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int? arity)
+	{
+		var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
 		foreach (ModuleSymbol module in Modules)
 		{
 			builder.AddRange(module.GetTypeMembers(name, arity));
 		}
+
+		builder.Sort(LexicalOrderSymbolComparer.Instance);
 
 		return builder.ToImmutableAndFree();
 	}

@@ -64,8 +64,7 @@ public partial class NiteCompilation
 	/// </summary>
 	public bool ContainsSyntaxTree(SyntaxTree? syntaxTree)
 	{
-		throw new NotImplementedException();
-		//return syntaxTree != null && _syntaxAndDeclarations.CurrentState.RootNamespaces.ContainsKey(syntaxTree);
+		return syntaxTree != null && _syntaxAndDeclarations.CurrentState.OrdinalMap.ContainsKey(syntaxTree);
 	}
 
 	internal int GetSyntaxTreeOrdinal(SyntaxTree tree)

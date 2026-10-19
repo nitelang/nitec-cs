@@ -7,13 +7,13 @@ public sealed class SourceLocation : Location
 {
 	public override LocationKind Kind => LocationKind.SourceFile;
 
-	private readonly SyntaxTree _syntaxTree;
-	private readonly TextSpan _span;
+	public override SyntaxTree SourceTree { get; }
+	public override TextSpan SourceSpan { get; }
 
-	public SourceLocation(SyntaxTree syntaxTree, TextSpan span)
+	public SourceLocation(SyntaxTree sourceTree, TextSpan sourceSpan)
 	{
-		_syntaxTree = syntaxTree;
-		_span = span;
+		SourceTree = sourceTree;
+		SourceSpan = sourceSpan;
 	}
 
 	public SourceLocation(SyntaxNode node) : this(node.SyntaxTree, node.Span)

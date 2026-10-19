@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace NiteCompiler.Utilities;
 
 public static class CollectionExtensions
@@ -53,6 +55,30 @@ public static class CollectionExtensions
 				dictionary.Add(key, value);
 				return value;
 			}
+		}
+	}
+
+	extension<K, V>(Dictionary<K, ImmutableArray<V>> dictionary)
+		where K : notnull
+	{
+		public ImmutableArray<V> Flatten(IComparer<V>? comparer = null)
+		{
+			if (dictionary.Count == 0)
+				return [];
+
+			var builder = ArrayBuilder<V>.GetInstance();
+
+			foreach (var pair in dictionary)
+			{
+				builder.AddRange(pair.Value);
+			}
+
+			if (comparer != null && builder.Count > 1)
+			{
+				builder.Sort(comparer);
+			}
+
+			return builder.ToImmutableAndFree();
 		}
 	}
 }

@@ -51,17 +51,22 @@ internal sealed class SourceLibrarySymbol : LibrarySymbol
 		return [GlobalModule];
 	}
 
-	public override ImmutableArray<Symbol> GetMembers(string name)
+	public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
 	{
-		return name == string.Empty ? [GlobalModule] : [];
+		return name.Length == 0 ? [GlobalModule] : [];
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers()
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
 	{
 		return [];
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers(string name, int? arity)
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
+	{
+		return [];
+	}
+
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int? arity)
 	{
 		return [];
 	}

@@ -1,3 +1,6 @@
+using NiteCompiler.CodeAnalysis.Syntax;
+using NiteCompiler.Text;
+
 namespace NiteCompiler.Diagnostics;
 
 /// <summary>
@@ -5,9 +8,10 @@ namespace NiteCompiler.Diagnostics;
 /// </summary>
 public abstract class Location
 {
-	private protected Location()
-	{
-	}
-
 	public abstract LocationKind Kind { get; }
+
+	public virtual SyntaxTree? SourceTree => null;
+	public virtual TextSpan SourceSpan => default;
+
+	private protected Location() { }
 }

@@ -77,7 +77,23 @@ public abstract class Symbol
 		}
 	}
 
+	internal virtual LexicalSortKey GetLexicalSortKey()
+	{
+		Location? firstLocation = FirstLocation;
+		if (firstLocation is null)
+		{
+			return LexicalSortKey.NotInSource;
+		}
+
+		NiteCompilation? declaringCompilation = DeclaringCompilation;
+		Debug.Assert(declaringCompilation != null);
+		return new LexicalSortKey(firstLocation, declaringCompilation);
+	}
+
+
 	public virtual ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
+
+	public virtual Location? FirstLocation => Locations.FirstOrDefault();
 
 	internal virtual void ForceComplete(Predicate<Symbol>? filter, CancellationToken cancellationToken = default)
 	{

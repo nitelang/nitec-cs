@@ -32,11 +32,19 @@ public abstract class ContainerSymbol : Symbol
 	/// <returns>
 	/// Immutable array of ordered symbol's members with provided <paramref name="name"/>.
 	/// </returns>
-	public abstract ImmutableArray<Symbol> GetMembers(string name);
+	public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
 
-	public abstract ImmutableArray<TypeSymbol> GetTypeMembers();
+	/// <inheritdoc cref="GetMembers(ReadOnlyMemory{char})" />
+	public ImmutableArray<Symbol> GetMembers(string name) => GetMembers(name.AsMemory());
 
-	public abstract ImmutableArray<TypeSymbol> GetTypeMembers(string name, int? arity);
+	public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered();
+
+	public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers();
+
+	public abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int? arity);
+
+	/// <inheritdoc cref="GetTypeMembers(ReadOnlyMemory{char}, int?)" />
+	public ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int? arity) => GetTypeMembers(name.AsMemory(), arity);
 
 	public virtual ImmutableArray<ModuleSymbol> GetNestedModules()
 	{

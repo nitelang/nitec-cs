@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using NiteCompiler.CodeAnalysis.Declarations;
+using NiteCompiler.Compilation;
 using NiteCompiler.Diagnostics;
 using NiteCompiler.Utilities;
 
@@ -41,8 +42,9 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 
 	private Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>? _nameToMembersMap;
 	private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>>? _nameToTypeMembersMap;
-	private ImmutableArray<Symbol> _lazyAllMembers;
-	private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+	private volatile bool _membersIsOrdered;
+	private ImmutableArray<Symbol> _members;
+	private ImmutableArray<NamedTypeSymbol> _typeMembersUnordered;
 
 	/// <summary>
 	/// Member symbols are created exactly once, here; every other query derives from this map so
@@ -87,7 +89,7 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 		// shortcut: duplicate-name path rebuilds the array per member; fine while the declaration
 		// layer merges partial declarations so names are unique — switch to a builder-based
 		// multi-value map when function overloads introduce real duplicates.
-		var map = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(members.Count, ReadOnlyCharMemoryComparer.Instance);
+		Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> map = new(members.Count, ReadOnlyCharMemoryComparer.Instance);
 
 		foreach (Symbol member in members.ToImmutableAndFree())
 		{
@@ -144,12 +146,13 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 
 	public override ImmutableArray<Symbol> GetMembersUnordered()
 	{
-		ImmutableArray<Symbol> result = _lazyAllMembers;
+		ImmutableArray<Symbol> result = _members;
 
 		if (result.IsDefault)
 		{
-			ImmutableInterlocked.InterlockedInitialize(ref _lazyAllMembers, FlattenMembers(GetNameToMembersMap()));
-			result = _lazyAllMembers;
+			ImmutableArray<Symbol> members = GetNameToMembersMap().Flatten();
+			ImmutableInterlocked.InterlockedInitialize(ref _members, members);
+			result = _members;
 		}
 
 		return result;
@@ -157,12 +160,26 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 
 	public override ImmutableArray<Symbol> GetMembers()
 	{
-		return GetMembersUnordered();
+		if (_membersIsOrdered)
+		{
+			return _members;
+		}
+
+		ImmutableArray<Symbol> members = GetMembersUnordered();
+
+		if (members.Length >= 2)
+		{
+			members = members.Sort(LexicalOrderSymbolComparer.Instance);
+			ImmutableInterlocked.InterlockedExchange(ref _members, members);
+		}
+		_membersIsOrdered = true;
+
+		return members;
 	}
 
-	public override ImmutableArray<Symbol> GetMembers(string name)
+	public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
 	{
-		if (GetNameToMembersMap().TryGetValue(name.AsMemory(), out ImmutableArray<Symbol> members))
+		if (GetNameToMembersMap().TryGetValue(name, out ImmutableArray<Symbol> members))
 		{
 			return members;
 		}
@@ -170,32 +187,31 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 		return [];
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers()
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
 	{
-		ImmutableArray<NamedTypeSymbol> result = _lazyTypeMembersUnordered;
-
-		if (result.IsDefault)
+		if (_typeMembersUnordered.IsDefault)
 		{
-			ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeMembersUnordered, FlattenTypeMembers(GetNameToTypeMembersMap()));
-			result = _lazyTypeMembersUnordered;
+			ImmutableArray<NamedTypeSymbol> members = GetNameToTypeMembersMap().Flatten();
+			ImmutableInterlocked.InterlockedInitialize(ref _typeMembersUnordered, members);
 		}
 
-		return ImmutableArray<TypeSymbol>.CastUp(result);
+		return _typeMembersUnordered;
 	}
 
-	public override ImmutableArray<TypeSymbol> GetTypeMembers(string name, int? arity)
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
 	{
-		if (GetNameToTypeMembersMap().TryGetValue(name.AsMemory(), out ImmutableArray<NamedTypeSymbol> members))
-		{
-			if (arity == null)
-			{
-				return ImmutableArray<TypeSymbol>.CastUp(members);
-			}
+		return GetNameToTypeMembersMap().Flatten(LexicalOrderSymbolComparer.Instance);
+	}
 
-			var result = ArrayBuilder<TypeSymbol>.GetInstance();
+	public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int? arity)
+	{
+		if (GetNameToTypeMembersMap().TryGetValue(name, out ImmutableArray<NamedTypeSymbol> members))
+		{
+			ArrayBuilder<NamedTypeSymbol> result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
 			foreach (NamedTypeSymbol member in members)
 			{
-				if (member.Arity == arity)
+				if (arity == null || arity == member.Arity)
 				{
 					result.Add(member);
 				}
@@ -205,30 +221,6 @@ internal sealed class SourceModuleSymbol : ModuleSymbol
 		}
 
 		return [];
-	}
-
-	private static ImmutableArray<Symbol> FlattenMembers(Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> map)
-	{
-		var builder = ArrayBuilder<Symbol>.GetInstance();
-
-		foreach (ImmutableArray<Symbol> members in map.Values)
-		{
-			builder.AddRange(members);
-		}
-
-		return builder.ToImmutableAndFree();
-	}
-
-	private static ImmutableArray<NamedTypeSymbol> FlattenTypeMembers(Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> map)
-	{
-		var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-
-		foreach (ImmutableArray<NamedTypeSymbol> members in map.Values)
-		{
-			builder.AddRange(members);
-		}
-
-		return builder.ToImmutableAndFree();
 	}
 
 	private CompletionPart _state;

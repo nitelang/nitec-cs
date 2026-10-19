@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using NiteCompiler.CodeAnalysis.Syntax;
 using NiteCompiler.Compilation;
 using NiteCompiler.Symbols;
@@ -44,5 +45,29 @@ public class SymbolTests
 		await That(a.GetTypeMembers("T", arity: 0)).IsNotEmpty();
 		await That(a.GetTypeMembers("T", arity: 1)).IsEmpty();
 		await That(a.GetMembers("T")[0]).IsSameReferenceAs(a.GetTypeMembers("T", arity: 0)[0]);
+	}
+
+	[Test]
+	public async Task MembersAreSortedBySourceLocation(CancellationToken cancellationToken)
+	{
+		// The declaration layer emits all modules before all types, so insertion order
+		// ([A, T, U]) differs from source order ([T, A, U]).
+		SyntaxTree first = SyntaxTree.FromText("type T {}\nmodule A;");
+		SyntaxTree second = SyntaxTree.FromText("type U {}");
+
+		var compilation = NiteCompilation.Create(null, Options, [first, second]);
+
+		ImmutableArray<Symbol> members = compilation.GlobalModule.GetMembers();
+
+		await That(members.Length).IsEqualTo(3);
+		await That(members[0].Name).IsEqualTo("T");
+		await That(members[1].Name).IsEqualTo("A");
+		await That(members[2].Name).IsEqualTo("U");
+
+		ImmutableArray<NamedTypeSymbol> types = compilation.GlobalModule.GetTypeMembers();
+
+		await That(types.Length).IsEqualTo(2);
+		await That(types[0].Name).IsEqualTo("T");
+		await That(types[1].Name).IsEqualTo("U");
 	}
 }
